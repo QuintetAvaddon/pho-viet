@@ -2,6 +2,7 @@
   Сервер сайта Phở Việt.
   - раздаёт сайт из папки public
   - принимает заказы (POST /api/order) и отправляет их в Telegram
+  - принимает сообщения бота (POST /api/tg): в группе бот отвечает ID чата и к какому ресторану он привязан
 
   Запуск:            node server.js
   Узнать chat_id:    node server.js chat-id
@@ -13,6 +14,7 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
+const crypto = require("crypto");
 
 /* ---------- .env ---------- */
 const envFile = path.join(__dirname, ".env");
@@ -30,6 +32,10 @@ const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
 const CHAT_IDS = (process.env.TELEGRAM_CHAT_ID || "").split(",").map(s => s.trim()).filter(Boolean);
 const TG_API = (process.env.TELEGRAM_API || "https://api.telegram.org").replace(/\/$/, "");
 const PUBLIC_DIR = path.join(__dirname, "public");
+// Адрес сайта для webhook бота. Render задаёт RENDER_EXTERNAL_URL сам.
+const PUBLIC_URL = (process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || "").replace(/\/$/, "");
+// Секрет webhook: Telegram присылает его в заголовке — чужие запросы на /api/tg отклоняются
+const HOOK_SECRET = BOT_TOKEN ? crypto.createHash("sha256").update("pv-hook:" + BOT_TOKEN).digest("hex").slice(0, 48) : "";
 
 /* ---------- Меню (цены берём с сервера, а не из браузера) ---------- */
 function loadMenu() {
@@ -47,8 +53,25 @@ async function tg(method, body) {
     body: JSON.stringify(body || {})
   });
   const j = await r.json().catch(() => ({}));
-  if (!j.ok) throw new Error(`Telegram ${method}: ${j.description || r.status}`);
+  if (!j.ok) {
+    const err = new Error(`Telegram ${method}: ${j.description || r.status}`);
+    err.parameters = j.parameters || {};
+    throw err;
+  }
   return j.result;
+}
+
+// Отправка в чат; если группа стала супергруппой, Telegram даёт новый ID — шлём туда и пишем в лог
+async function sendToChat(chat_id, text) {
+  const body = { chat_id, text, parse_mode: "HTML", disable_web_page_preview: true };
+  try {
+    return await tg("sendMessage", body);
+  } catch (e) {
+    const moved = e.parameters && e.parameters.migrate_to_chat_id;
+    if (!moved) throw e;
+    console.warn(`[telegram] группа ${chat_id} стала супергруппой, новый ID ${moved} — обновите переменную на Render`);
+    return tg("sendMessage", { ...body, chat_id: moved });
+  }
 }
 
 const esc = s => String(s ?? "").replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
@@ -184,12 +207,64 @@ async function handleOrder(req, res) {
   }
   try {
     const text = formatMessage(order);
-    await Promise.all(chats.map(chat_id => tg("sendMessage", { chat_id, text, parse_mode: "HTML", disable_web_page_preview: true })));
+    await Promise.all(chats.map(chat_id => sendToChat(chat_id, text)));
     console.log(`Заказ №${order.id} на ${order.total} ₽ отправлен в Telegram`);
     send(res, 200, { ok: true, id: order.id, total: order.total });
   } catch (e) {
     console.error(e.message);
     send(res, 502, { ok: false, error: "Не удалось передать заказ в ресторан" });
+  }
+}
+
+/* ---------- Бот в группах ---------- */
+function pointsForChat(chatId) {
+  const locs = loadMenu().cfg.locations || [];
+  return locs.filter(l => (process.env["TELEGRAM_CHAT_ID_" + l.id.toUpperCase()] || "").split(",").map(s => s.trim()).includes(String(chatId)));
+}
+
+function chatInfoText(chat) {
+  const pts = pointsForChat(chat.id);
+  const lines = [`ID этого чата: <code>${chat.id}</code>`];
+  if (chat.title) lines.push(`Группа: ${esc(chat.title)}`);
+  lines.push(pts.length
+    ? `✅ Сюда приходят заказы: ${pts.map(p => esc(p.name || p.id)).join(", ")}`
+    : "Заказы сюда пока не приходят — этот чат ещё не привязан к ресторану.");
+  return lines.join("\n");
+}
+
+async function handleTelegram(req, res) {
+  if (!BOT_TOKEN || req.headers["x-telegram-bot-api-secret-token"] !== HOOK_SECRET) return send(res, 403, { ok: false });
+  let upd;
+  try { upd = JSON.parse(await readBody(req, 200000)); } catch { return send(res, 400, { ok: false }); }
+  send(res, 200, { ok: true }); // отвечаем Telegram сразу, дальше — асинхронно
+  try {
+    const mcm = upd.my_chat_member;
+    const isIn = s => s === "member" || s === "administrator";
+    if (mcm && isIn(mcm.new_chat_member && mcm.new_chat_member.status) && !isIn(mcm.old_chat_member && mcm.old_chat_member.status)) {
+      console.log(`[telegram] бот добавлен: чат ${mcm.chat.id} «${mcm.chat.title || ""}»`);
+      await tg("sendMessage", { chat_id: mcm.chat.id, text: "Привет! Я бот заказов Phở Việt 🍜\n" + chatInfoText(mcm.chat), parse_mode: "HTML" });
+    }
+    const msg = upd.message;
+    if (msg && msg.text && /^\/(id|start)(@\w+)?(\s|$)/i.test(msg.text)) {
+      console.log(`[telegram] /id: чат ${msg.chat.id} «${msg.chat.title || msg.chat.first_name || ""}»`);
+      await tg("sendMessage", { chat_id: msg.chat.id, text: chatInfoText(msg.chat), parse_mode: "HTML" });
+    }
+    if (msg && msg.migrate_to_chat_id) {
+      console.warn(`[telegram] группа ${msg.chat.id} «${msg.chat.title || ""}» стала супергруппой, новый ID ${msg.migrate_to_chat_id}`);
+    }
+  } catch (e) {
+    console.error("[telegram]", e.message);
+  }
+}
+
+async function setupWebhook() {
+  if (!BOT_TOKEN || !PUBLIC_URL) return;
+  try {
+    await tg("setWebhook", { url: PUBLIC_URL + "/api/tg", secret_token: HOOK_SECRET, allowed_updates: ["message", "my_chat_member"] });
+    const me = await tg("getMe");
+    console.log(`[telegram] бот @${me.username} подключён, webhook: ${PUBLIC_URL}/api/tg`);
+  } catch (e) {
+    console.error("[telegram] не удалось настроить webhook:", e.message);
   }
 }
 
@@ -230,10 +305,12 @@ if (process.argv[2] === "chat-id") {
 } else {
   http.createServer((req, res) => {
     if (req.method === "POST" && req.url === "/api/order") return handleOrder(req, res).catch(e => { console.error(e); send(res, 500, { ok: false, error: "Ошибка сервера" }); });
+    if (req.method === "POST" && req.url === "/api/tg") return handleTelegram(req, res).catch(e => { console.error(e); try { send(res, 500, { ok: false }); } catch {} });
     if (req.method === "GET" || req.method === "HEAD") return serveStatic(req, res);
     send(res, 405, "Method not allowed", "text/plain");
   }).listen(PORT, () => {
     console.log(`Сайт: http://localhost:${PORT}`);
-    if (!BOT_TOKEN || !CHAT_IDS.length) console.log("ВНИМАНИЕ: Telegram не настроен — заполните .env (см. .env.example)");
+    if (!BOT_TOKEN) console.log("ВНИМАНИЕ: Telegram не настроен — задайте TELEGRAM_BOT_TOKEN (см. README)");
+    setupWebhook();
   });
 }
