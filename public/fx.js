@@ -34,8 +34,10 @@
     resize(); addEventListener("resize", resize);
     let visible = true;
     new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(c);
+    let frame = 0;
     const draw = t => {
-      if (visible) {
+      frame++;
+      if (visible && (!isMobile() || frame % 4 === 0)) {
         ctx.clearRect(0, 0, w, h);
         for (const s of list) {
           const a = reduced ? 0.7 : 0.35 + 0.65 * Math.abs(Math.sin(s.p + t * 0.001 * s.s));
@@ -54,6 +56,11 @@
     const c = $("#particles"); if (!c || reduced) return;
     const ctx = c.getContext("2d");
     let w, h, parts = [];
+    // спрайт уголька рисуем один раз
+    const ember = document.createElement("canvas"); ember.width = ember.height = 64;
+    { const ec = ember.getContext("2d"), g = ec.createRadialGradient(32, 32, 0, 32, 32, 32);
+      g.addColorStop(0, "rgba(255,200,120,1)"); g.addColorStop(0.4, "rgba(255,110,60,.5)"); g.addColorStop(1, "rgba(200,50,58,0)");
+      ec.fillStyle = g; ec.fillRect(0, 0, 64, 64); }
     const make = (init) => {
       const petal = Math.random() < 0.45;
       return petal
@@ -63,7 +70,7 @@
     const resize = () => {
       const dpr = Math.min(devicePixelRatio || 1, 2);
       w = c.clientWidth; h = c.clientHeight; c.width = w * dpr; c.height = h * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      parts = Array.from({ length: isMobile() ? 34 : 80 }, () => make(true));
+      parts = Array.from({ length: isMobile() ? 16 : 70 }, () => make(true));
     };
     resize(); addEventListener("resize", resize);
     let visible = true, mx = 0;
@@ -85,10 +92,8 @@
           } else {
             p.x += p.vx + Math.sin(p.sw) * 0.3 + mx * 0.2; p.y += p.vy; p.life += 0.003;
             const a = Math.max(0, Math.sin(p.life * Math.PI)) * (0.5 + 0.5 * Math.sin(t * 0.01 + p.sw));
-            const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 5);
-            g.addColorStop(0, `rgba(255,200,120,${a})`); g.addColorStop(0.4, `rgba(255,110,60,${a * 0.5})`); g.addColorStop(1, "rgba(200,50,58,0)");
-            ctx.globalAlpha = 1; ctx.fillStyle = g;
-            ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 5, 0, Math.PI * 2); ctx.fill();
+            const sz = p.r * 10;
+            ctx.globalAlpha = a; ctx.drawImage(ember, p.x - sz / 2, p.y - sz / 2, sz, sz);
             if (p.y < -20 || p.life > 1) parts[i] = make(false);
           }
         }
@@ -110,10 +115,11 @@
 
   const { gsap, ScrollTrigger } = window;
   gsap.registerPlugin(ScrollTrigger);
+  ScrollTrigger.config({ ignoreMobileResize: true });
 
   /* ---------- Плавный скролл ---------- */
   let lenis = null;
-  if (window.Lenis) {
+  if (window.Lenis && finePointer) {
     lenis = new Lenis({ duration: 1.15, smoothWheel: true, anchors: { offset: -90 } });
     lenis.on("scroll", ScrollTrigger.update);
     gsap.ticker.add(t => lenis.raf(t * 1000));
@@ -209,7 +215,7 @@
       const tl = gsap.timeline({
         defaults: { ease: "power2.out" },
         scrollTrigger: {
-          trigger: "#assemble", start: "top top", end: desktop ? "+=420%" : "+=300%",
+          trigger: "#assemble", start: "top top", end: desktop ? "+=420%" : "+=240%",
           scrub: 1, pin: true, anticipatePin: 1, onUpdate: self => setStep(self.progress)
         }
       });
@@ -225,7 +231,8 @@
 
       // 01 — чаша и бульон
       // чаша падает сверху, вращаясь, отскакивает и встаёт по центру
-      tl.fromTo("#asmBowl", { y: -820 }, { y: 0, duration: 1.4, ease: "bounce.out" }, 0)
+      tl.fromTo("#asmBowl", { y: desktop ? -820 : -420 }, { y: 0, duration: 1.4, ease: "bounce.out" }, 0)
+        .fromTo("#asmBowl", { opacity: desktop ? 1 : 0 }, { opacity: 1, duration: 0.35, ease: "none" }, 0)
         .fromTo("#asmBowl", { rotation: -38, scale: 0.86, transformOrigin: "50% 100%" }, { rotation: 0, scale: 1, duration: 1.6, ease: "elastic.out(1, 0.45)" }, 0)
         .fromTo(".asm-ground-shadow", { scale: 0.12, opacity: 0, transformOrigin: "50% 50%" }, { scale: 1, opacity: 0.5, duration: 1.4, ease: "bounce.out" }, 0)
         .from(".asm-broth", { scaleY: 0, opacity: 0, transformOrigin: "50% 50%", duration: 0.7 }, 1.0)

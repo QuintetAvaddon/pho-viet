@@ -171,7 +171,7 @@ body.has-pointer .cursor-glow { opacity: 1; }
 .moon-crater.c3 { width: 24%; height: 24%; left: 52%; top: 56%; opacity: .7; }
 @keyframes moonBreath { 50% { box-shadow: 0 0 80px 14px rgba(210, 80, 70, .6), 0 0 240px 80px rgba(176, 48, 46, .32), 0 0 460px 180px rgba(110, 24, 24, .22), inset -30px -40px 80px rgba(40, 0, 10, .55); } }
 
-.town .windows rect { animation: flicker 5s ease-in-out infinite; filter: drop-shadow(0 0 6px #F2A541); }
+.town .windows rect { animation: flicker 5s ease-in-out infinite; }
 .town .windows rect:nth-child(3n) { animation-delay: -1.7s; }
 .town .windows rect:nth-child(4n) { animation-delay: -3.1s; animation-duration: 7s; }
 @keyframes flicker { 0%, 100% { opacity: 1; } 45% { opacity: .75; } 50% { opacity: .35; } 55% { opacity: .9; } }
@@ -871,3 +871,39 @@ html { scrollbar-width: thin; scrollbar-color: #4a2b27 var(--bg); }
 @media (max-width: 860px) {
   .page-menu .menu-intro::after { display: none; }
 }
+
+/* =========================================================
+   Производительность (особенно телефоны / iOS)
+   ========================================================= */
+/* Луна: вместо анимации огромной тени (перерисовка каждый кадр) — мягкое свечение, которое меняет только прозрачность */
+.moon { animation: none; }
+.moon::after {
+  content: ""; position: absolute; inset: -40%; border-radius: 50%; z-index: -1; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(210, 80, 70, .32), rgba(176, 48, 46, .12) 55%, transparent 72%);
+  animation: moonGlow 7s ease-in-out infinite; will-change: opacity;
+}
+@keyframes moonGlow { 0%, 100% { opacity: .65; } 50% { opacity: 1; } }
+
+/* Фонари финала: мерцание фильтром яркости слишком дорогое — оставляем мягкое покачивание */
+.finale-lanterns span.lit { animation: lanternSwing 6s ease-in-out infinite; }
+
+/* Телефоны и планшеты (сенсорный экран): убираем самые дорогие эффекты */
+@media (hover: none), (max-width: 1024px) {
+  .grain { display: none; }
+  .site-header.scrolled { background: rgba(17, 9, 9, .94); backdrop-filter: none; }
+  .menu-bar { background: rgba(17, 9, 9, .96); backdrop-filter: none; }
+  .btn-glass, .cart-btn, .tag, .panel-step, .info-card, .modal-close, .toast { backdrop-filter: none; }
+  .btn-glass, .cart-btn { background: rgba(40, 24, 24, .85); }
+  .tag, .panel-step { background: rgba(17, 9, 9, .82); }
+  .overlay { backdrop-filter: none; background: rgba(8, 4, 4, .82); }
+  .town .windows rect { animation: none; }
+  .finale-lanterns span { animation: none; }
+  .layer, .gl, .marquee-row, .story-track { will-change: auto; }
+  .lantern { animation-duration: 7s; }
+}
+
+/* Сцена чаши на телефоне: падающая чашка появляется из-за верхнего края сцены, а не поверх шагов */
+@media (max-width: 1100px) {
+  .asm-scene { overflow: hidden; }
+}
+.moon-wrap { isolation: isolate; }

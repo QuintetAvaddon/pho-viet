@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=18">
+  <link rel="stylesheet" href="styles.css?v=20">
   <script>
     // При обновлении всегда начинаем с главного экрана, а не с места прошлой прокрутки
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -221,6 +221,7 @@
           <radialGradient id="gLeaf2" cx=".5" cy=".3" r=".8"><stop offset="0" stop-color="#3f6828"/><stop offset="1" stop-color="#0b160a"/></radialGradient>
           <linearGradient id="gPetal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6dccd"/><stop offset=".5" stop-color="#c9544c"/><stop offset="1" stop-color="#7b2424"/></linearGradient>
           <linearGradient id="gWater" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d0707" stop-opacity="0"/><stop offset=".35" stop-color="#0d0707"/><stop offset="1" stop-color="#060303"/></linearGradient>
+          <radialGradient id="gLotusGlow"><stop offset="0" stop-color="#c9544c" stop-opacity=".55"/><stop offset="1" stop-color="#c9544c" stop-opacity="0"/></radialGradient>
           <filter id="fGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
         </defs>
         <rect y="640" width="1600" height="260" fill="url(#gWater)"/>
@@ -238,7 +239,7 @@
         <ellipse cx="820" cy="760" rx="120" ry="28" fill="url(#gLeaf)"/>
         <!-- лотосы со свечением -->
         <g class="lotus" transform="translate(300 640)">
-          <circle r="70" fill="#c9544c" opacity=".4" filter="url(#fGlow)"/>
+          <circle r="95" fill="url(#gLotusGlow)"/>
           <path d="M0 0c-22-30-22-70 0-100 22 30 22 70 0 100z" fill="url(#gPetal)"/>
           <path d="M0 0c-40-14-62-50-60-88 32 12 54 48 60 88z" fill="url(#gPetal)"/>
           <path d="M0 0c40-14 62-50 60-88-32 12-54 48-60 88z" fill="url(#gPetal)"/>
@@ -246,7 +247,7 @@
           <path d="M0 0c50 0 82-26 92-58-36-2-70 22-92 58z" fill="url(#gPetal)" opacity=".9"/>
         </g>
         <g class="lotus" transform="translate(1310 640) scale(.8)">
-          <circle r="70" fill="#c9544c" opacity=".4" filter="url(#fGlow)"/>
+          <circle r="95" fill="url(#gLotusGlow)"/>
           <path d="M0 0c-22-30-22-70 0-100 22 30 22 70 0 100z" fill="url(#gPetal)"/>
           <path d="M0 0c-40-14-62-50-60-88 32 12 54 48 60 88z" fill="url(#gPetal)"/>
           <path d="M0 0c40-14 62-50 60-88-32 12-54 48-60 88z" fill="url(#gPetal)"/>
@@ -336,6 +337,9 @@
           <pattern id="weaveP" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
             <rect width="14" height="14" fill="none"/><path d="M0 7h14M7 0v14" stroke="#8a5e2c" stroke-width="2" opacity=".35"/>
           </pattern>
+          <radialGradient id="softShadow"><stop offset="0" stop-color="#000" stop-opacity="1"/><stop offset=".55" stop-color="#000" stop-opacity=".55"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+          <radialGradient id="softAmber"><stop offset="0" stop-color="#f2a541" stop-opacity="1"/><stop offset="1" stop-color="#f2a541" stop-opacity="0"/></radialGradient>
+          <linearGradient id="steamG" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
           <filter id="blur8" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="8"/></filter>
           <filter id="blur14" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
           <clipPath id="brothClip"><ellipse cx="450" cy="316" rx="200" ry="54"/></clipPath>
@@ -357,11 +361,11 @@
         </defs>
 
         <!-- мягкий свет под чашей -->
-        <ellipse class="asm-light" cx="450" cy="560" rx="380" ry="120" fill="#f2a541" opacity=".14" filter="url(#blur14)"/>
+        <ellipse class="asm-light" cx="450" cy="560" rx="400" ry="135" fill="url(#softAmber)" opacity=".2"/>
 
         <!-- ПОДНОС -->
         <g class="asm-tray" id="asmTray">
-          <ellipse cx="450" cy="586" rx="430" ry="152" fill="#000" opacity=".45" filter="url(#blur14)"/>
+          <ellipse cx="450" cy="588" rx="450" ry="165" fill="url(#softShadow)" opacity=".5"/>
           <ellipse cx="450" cy="566" rx="424" ry="150" fill="#8e6230"/>
           <ellipse cx="450" cy="560" rx="420" ry="148" fill="url(#trayG)"/>
           <ellipse cx="450" cy="560" rx="392" ry="134" fill="url(#weaveP)"/>
@@ -433,7 +437,7 @@
             </g></g>
             <!-- гарнир кучкой: зелень, лайм, ростки, перец -->
             <g class="asm-garnish">
-              <ellipse cx="150" cy="616" rx="104" ry="34" fill="#000" opacity=".22" filter="url(#blur8)"/>
+              <ellipse cx="150" cy="616" rx="112" ry="38" fill="url(#softShadow)" opacity=".3"/>
               <use href="#basil" transform="translate(64 576) rotate(-40) scale(1.25)"/>
               <use href="#basil" transform="translate(206 590) rotate(18) scale(1.1)"/>
               <g transform="translate(92 590) rotate(-14)"><path d="M-34 0a34 34 0 0 1 68 0z" fill="#5f9a2c"/><path d="M-28 0a28 28 0 0 1 56 0z" fill="#e9f0a2"/><path d="M0 0 0-26M0 0-19-19M0 0 19-19M0 0-26-7M0 0 26-7" stroke="#cbd978" stroke-width="2"/></g>
@@ -506,7 +510,7 @@
         </g>
 
         <!-- тень чаши на столе (растёт, пока чаша падает) -->
-        <ellipse class="asm-ground-shadow" cx="450" cy="548" rx="170" ry="28" fill="#000" opacity=".5" filter="url(#blur8)"/>
+        <ellipse class="asm-ground-shadow" cx="450" cy="548" rx="185" ry="34" fill="url(#softShadow)" opacity=".65"/>
 
         <!-- ЧАША -->
         <g class="asm-bowl" id="asmBowl">
@@ -619,9 +623,9 @@
 
         <!-- пар -->
         <g class="asm-steam" aria-hidden="true">
-          <path class="st st1" d="M400 250c-20-40 20-60 0-110" stroke="#fff" stroke-width="16" fill="none" stroke-linecap="round" filter="url(#blur8)"/>
-          <path class="st st2" d="M455 250c-20-40 20-70 0-130" stroke="#fff" stroke-width="18" fill="none" stroke-linecap="round" filter="url(#blur8)"/>
-          <path class="st st3" d="M510 250c-20-40 20-60 0-105" stroke="#fff" stroke-width="14" fill="none" stroke-linecap="round" filter="url(#blur8)"/>
+          <path class="st st1" d="M400 250c-20-40 20-60 0-110" stroke="url(#steamG)" stroke-width="16" fill="none" stroke-linecap="round"/>
+          <path class="st st2" d="M455 250c-20-40 20-70 0-130" stroke="url(#steamG)" stroke-width="18" fill="none" stroke-linecap="round"/>
+          <path class="st st3" d="M510 250c-20-40 20-60 0-105" stroke="url(#steamG)" stroke-width="14" fill="none" stroke-linecap="round"/>
         </g>
 
         <!-- половник: доливаем кипящий бульон -->
@@ -939,9 +943,9 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
-<script src="menu.js?v=18"></script>
-<script src="app.js?v=18"></script>
-<script src="pwa.js?v=18" defer></script>
-<script src="fx.js?v=18" defer></script>
+<script src="menu.js?v=20"></script>
+<script src="app.js?v=20"></script>
+<script src="pwa.js?v=20" defer></script>
+<script src="fx.js?v=20" defer></script>
 </body>
 </html>
