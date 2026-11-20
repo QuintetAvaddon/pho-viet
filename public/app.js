@@ -273,8 +273,9 @@
     if (!count()) return;
     $("#checkoutView").hidden = false; $("#successView").hidden = true;
     fillTimes();
+    fillPoints();
     const saved = JSON.parse(localStorage.getItem("phoviet_contact") || "{}");
-    for (const k of ["name", "phone", "street", "flat", "entrance", "floor"]) if (saved[k] && !form[k].value) form[k].value = saved[k];
+    for (const k of ["name", "phone", "street", "flat", "entrance", "floor", "point"]) if (saved[k] && form[k] && !form[k].value) form[k].value = saved[k];
     syncForm();
     openOverlay($("#checkoutOverlay"), "#fName");
   }
@@ -283,6 +284,8 @@
     const pickup = isPickup();
     $("#addressGroup").hidden = pickup;
     $("#fStreet").required = !pickup;
+    $("#pickupField").hidden = !pickup || !LOCS.length;
+    $("#fPoint").required = pickup && LOCS.length > 0;
     $("#changeField").hidden = form.payment.value !== "cash";
     $("#checkoutSummary").innerHTML = totalsHtml(pickup);
   }
@@ -307,7 +310,8 @@
   const rules = {
     fName: v => v.trim().length >= 2 || "Укажите имя",
     fPhone: v => v.replace(/\D/g, "").length === 11 || "Введите телефон полностью: +7 и 10 цифр",
-    fStreet: v => isPickup() || v.trim().length >= 5 || "Укажите улицу и номер дома"
+    fStreet: v => isPickup() || v.trim().length >= 5 || "Укажите улицу и номер дома",
+    fPoint: v => !isPickup() || !LOCS.length || !!locById(v) || "Выберите ресторан, где заберёте заказ"
   };
   function validateField(id) {
     const el = $("#" + id), res = rules[id](el.value);
@@ -335,6 +339,7 @@
       method: pickup ? "pickup" : "delivery",
       customer: { name: fd.name.trim(), phone: fd.phone },
       address: pickup ? null : { street: fd.street, flat: fd.flat, entrance: fd.entrance, floor: fd.floor },
+      point: pickup ? (fd.point || null) : null,
       time: fd.time, payment: fd.payment, change: fd.change || null, comment: fd.comment || "",
       items: Object.entries(cart).map(([id, q]) => ({ id, name: BY_ID[id].name, price: BY_ID[id].price, qty: q })),
       subtotal: sub, delivery: fee, total: sub + fee
@@ -352,13 +357,13 @@
       }
       const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || "[]");
       orders.push(order); localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-      localStorage.setItem("phoviet_contact", JSON.stringify({ name: fd.name, phone: fd.phone, street: fd.street, flat: fd.flat, entrance: fd.entrance, floor: fd.floor }));
+      localStorage.setItem("phoviet_contact", JSON.stringify({ name: fd.name, phone: fd.phone, street: fd.street, flat: fd.flat, entrance: fd.entrance, floor: fd.floor, point: fd.point || "" }));
 
       cart = {}; save(); renderAll();
       $("#checkoutView").hidden = true; $("#successView").hidden = false;
       const when = order.time === "asap" ? (pickup ? "через 20–30 минут" : "в течение 30–60 минут") : `к ${order.time}`;
       $("#successText").innerHTML = `Номер заказа <b>№${order.id}</b> на сумму <b>${rub(order.total)}</b>.<br>
-        ${pickup ? `Заказ будет готов ${when}.` : `Курьер привезёт его ${when}.`} Мы позвоним на ${esc(order.customer.phone)} для подтверждения.`;
+        ${pickup ? `Заказ будет готов ${when}${locById(order.point) ? ` — ${esc(locName(locById(order.point)))}, ${esc(locById(order.point).address)}` : ""}.` : `Курьер привезёт его ${when}.`} Мы позвоним на ${esc(order.customer.phone)} для подтверждения.`;
       $("#successTitle").focus();
       form.reset();
     } catch (err) {
@@ -381,10 +386,55 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
   }
 
+  /* ---------- Рестораны сети ---------- */
+  const LOCS = Array.isArray(CFG.locations) ? CFG.locations : [];
+  const locById = id => LOCS.find(l => l.id === id);
+  const locName = l => l.name || l.metro || "";
+  const mapUrl = l => "https://yandex.ru/maps/?text=" + encodeURIComponent(/москва/i.test(l.address || "") ? l.address : "Москва, " + (l.address || ""));
+  // «Открыто до 22:00» / «Откроется в 10:00» — по московскому времени
+  function openState(hours) {
+    const m = String(hours || "").match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})/);
+    if (!m) return null;
+    const parts = new Intl.DateTimeFormat("ru-RU", { timeZone: "Europe/Moscow", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date());
+    const now = +parts.find(p => p.type === "hour").value * 60 + +parts.find(p => p.type === "minute").value;
+    const from = +m[1] * 60 + +m[2], to = +m[3] * 60 + +m[4];
+    const open = to > from ? now >= from && now < to : now >= from || now < to;
+    return open ? { open, text: `Открыто до ${m[3]}:${m[4]}` } : { open, text: `Откроется в ${m[1]}:${m[2]}` };
+  }
+  function renderLocations() {
+    $$(".js-locations").forEach(box => {
+      if (box.dataset.variant === "compact") {
+        box.innerHTML = LOCS.map(l => `<li><b>${esc(locName(l))}</b><span>${esc(l.address)}</span></li>`).join("");
+        return;
+      }
+      box.innerHTML = LOCS.map(l => {
+        const st = openState(l.hours);
+        const tel = (l.phone || "").replace(/[^\d+]/g, "");
+        return `<article class="loc-card">
+          ${st ? `<span class="loc-status${st.open ? "" : " closed"}">${st.text}</span>` : ""}
+          <h4>${esc(locName(l))}</h4>
+          <p class="loc-address">${esc(l.address)}</p>
+          ${l.hours ? `<p class="loc-hours"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>${esc(l.hours)}</p>` : ""}
+          <div class="loc-actions">
+            ${tel ? `<a class="loc-btn" href="tel:${tel}"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg>Позвонить</a>` : ""}
+            <a class="loc-btn" href="${mapUrl(l)}" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg>Маршрут</a>
+          </div>
+        </article>`;
+      }).join("");
+    });
+  }
+  function fillPoints() {
+    const sel = $("#fPoint");
+    if (!sel || sel.options.length) return;
+    sel.innerHTML = `<option value="">Выберите ресторан</option>` + LOCS.map(l => `<option value="${esc(l.id)}">${esc(locName(l))} — ${esc(l.address)}</option>`).join("");
+  }
+  renderLocations();
+
   /* ---------- Static info ---------- */
   $$(".js-phone").forEach(e => (e.textContent = CFG.phone));
   $$(".js-phone-link").forEach(e => (e.href = "tel:" + CFG.phone.replace(/[^\d+]/g, "")));
-  $$(".js-address").forEach(e => (e.textContent = CFG.address));
+  const addrText = LOCS.length > 1 ? `${LOCS.length} ${plural(LOCS.length, ["ресторан", "ресторана", "ресторанов"])} в Москве` : (LOCS[0]?.address || CFG.address);
+  $$(".js-address").forEach(e => (e.textContent = addrText));
   $$(".js-hours").forEach(e => (e.textContent = CFG.hours));
   $$(".js-free").forEach(e => (e.textContent = rub(CFG.freeDeliveryFrom)));
   $$(".js-fee").forEach(e => (e.textContent = rub(CFG.deliveryFee)));

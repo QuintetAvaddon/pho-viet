@@ -907,3 +907,47 @@ html { scrollbar-width: thin; scrollbar-color: #4a2b27 var(--bg); }
   .asm-scene { overflow: hidden; }
 }
 .moon-wrap { isolation: isolate; }
+
+/* =========================================================
+   Рестораны сети
+   ========================================================= */
+.locations { margin-top: 34px; }
+.locations-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 18px; flex-wrap: wrap; margin-bottom: 14px; }
+.locations-head h3 { margin: 0; font: 800 clamp(22px, 2.4vw, 30px) var(--font-display); letter-spacing: -.03em; }
+.locations-head p { margin: 0; color: var(--muted); font-size: 14px; }
+.locations-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.loc-card {
+  display: flex; flex-direction: column; gap: 6px; padding: 18px; border-radius: var(--radius-lg);
+  background: var(--surface); border: 1px solid var(--border); transition: border-color .3s, transform .4s var(--ease-out);
+}
+.loc-card:hover { border-color: rgba(181, 209, 122, .4); transform: translateY(-3px); }
+.loc-status { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: rgba(181, 209, 122, .12); color: var(--jade-text); }
+.loc-status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.loc-status.closed { background: rgba(255, 138, 122, .1); color: var(--danger); }
+.loc-card h4 { margin: 4px 0 0; font: 800 18px var(--font-display); letter-spacing: -.02em; }
+.loc-address { margin: 0; font-size: 14px; }
+.loc-hours { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--muted); font-size: 13px; }
+.loc-hours .ic { width: 15px; height: 15px; color: var(--amber); }
+.loc-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 10px; }
+.loc-btn {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 42px; padding: 6px 12px;
+  border-radius: 999px; border: 1px solid var(--border-strong); color: var(--fg); font-size: 13px; font-weight: 700; text-decoration: none;
+  transition: background-color .25s, border-color .25s;
+}
+.loc-btn:hover { background: var(--primary); border-color: var(--primary); }
+.loc-btn .ic { width: 16px; height: 16px; }
+
+.footer-locations { list-style: none; margin: 2px 0 0; padding: 0 0 0 32px; display: grid; gap: 8px; }
+.footer-locations li { display: grid; gap: 1px; font-size: 13px; color: var(--muted); }
+.footer-locations b { color: var(--fg); font-weight: 700; }
+
+@media (max-width: 720px) {
+  .locations-grid {
+    grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 78%;
+    overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 6px;
+  }
+  .locations-grid::-webkit-scrollbar { display: none; }
+  .loc-card { scroll-snap-align: start; }
+}
+/* Колонка финала не растягивается под ширину ленты ресторанов (grid-элемент по умолчанию min-width: auto) */
+.finale-copy, .finale-inner > * { min-width: 0; }

@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20">
+  <link rel="stylesheet" href="styles.css?v=23">
 </head>
 <body class="page-menu">
 <script>document.documentElement.classList.add("page-menu")</script>
@@ -181,6 +181,7 @@
       <a class="js-phone-link" href="#"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span class="js-phone"></span></a>
       <p><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg><span class="js-address"></span></p>
       <p><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg><span class="js-hours"></span></p>
+      <ul class="footer-locations js-locations" data-variant="compact"></ul>
     </div>
   </div>
   <p class="container copyright">© <span id="year"></span> Phở Việt</p>
@@ -236,6 +237,12 @@
         <div class="seg" role="radiogroup" aria-label="Способ получения">
           <label><input type="radio" name="method" value="delivery" checked><span>Доставка</span></label>
           <label><input type="radio" name="method" value="pickup"><span>Самовывоз</span></label>
+        </div>
+
+        <div class="field" id="pickupField" hidden>
+          <label for="fPoint">Ресторан для самовывоза</label>
+          <select id="fPoint" name="point"></select>
+          <p class="err" id="fPoint-err"></p>
         </div>
 
         <div class="field">
@@ -325,8 +332,8 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="menu.js?v=20"></script>
-<script src="app.js?v=20"></script>
-<script src="pwa.js?v=20" defer></script>
+<script src="menu.js?v=23"></script>
+<script src="app.js?v=23"></script>
+<script src="pwa.js?v=23" defer></script>
 </body>
 </html>

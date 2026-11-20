@@ -71,6 +71,15 @@ function buildOrder(input, menu) {
   } : null;
   if (address && address.street.length < 5) errors.push("street");
 
+  // Самовывоз: точка должна быть из списка ресторанов в menu.js
+  const locs = Array.isArray(menu.cfg.locations) ? menu.cfg.locations : [];
+  let point = null;
+  if (method === "pickup" && locs.length) {
+    const l = locs.find(x => x.id === input.point);
+    if (!l) errors.push("point");
+    else point = { id: l.id, name: l.name || l.metro || l.id, address: l.address || "" };
+  }
+
   const items = [];
   for (const it of Array.isArray(input.items) ? input.items.slice(0, 60) : []) {
     const d = menu.byId[it?.id];
@@ -88,7 +97,7 @@ function buildOrder(input, menu) {
       id: String(Date.now()).slice(-6),
       method, name,
       phone: "+" + phoneDigits,
-      address,
+      address, point,
       time: clip(input.time, 20) || "asap",
       payment: input.payment === "cash" ? "cash" : "card",
       change: clip(input.change, 12),
@@ -101,7 +110,7 @@ function buildOrder(input, menu) {
 function formatMessage(o) {
   const lines = [
     `🍜 <b>Новый заказ №${o.id}</b>`,
-    o.method === "pickup" ? "🏃 <b>Самовывоз</b>" : "🚚 <b>Доставка</b>",
+    o.method === "pickup" ? `🏃 <b>Самовывоз</b>${o.point ? ` — ${esc(o.point.name)}, ${esc(o.point.address)}` : ""}` : "🚚 <b>Доставка</b>",
     "",
     `👤 ${esc(o.name)}`,
     `📞 <a href="tel:${o.phone}">${esc(o.phone)}</a>`
@@ -147,6 +156,15 @@ function readBody(req, limit = 20000) {
   });
 }
 
+// Куда слать заказ: самовывоз — в чат точки (TELEGRAM_CHAT_ID_P1 …), если он задан; остальное — в общий TELEGRAM_CHAT_ID
+function chatsFor(order) {
+  if (order.point) {
+    const own = (process.env["TELEGRAM_CHAT_ID_" + order.point.id.toUpperCase()] || "").split(",").map(s => s.trim()).filter(Boolean);
+    if (own.length) return own;
+  }
+  return CHAT_IDS;
+}
+
 async function handleOrder(req, res) {
   const ip = (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || req.socket.remoteAddress;
   if (rateLimited(ip)) return send(res, 429, { ok: false, error: "Слишком много заказов подряд. Позвоните нам, пожалуйста." });
@@ -157,13 +175,14 @@ async function handleOrder(req, res) {
   const { errors, order } = buildOrder(input, loadMenu());
   if (errors.length) return send(res, 422, { ok: false, error: "Проверьте данные заказа", fields: errors });
 
-  if (!BOT_TOKEN || !CHAT_IDS.length) {
+  const chats = chatsFor(order);
+  if (!BOT_TOKEN || !chats.length) {
     console.error("Заказ не отправлен: не заданы TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID в .env");
     return send(res, 503, { ok: false, error: "Приём заказов временно не настроен" });
   }
   try {
     const text = formatMessage(order);
-    await Promise.all(CHAT_IDS.map(chat_id => tg("sendMessage", { chat_id, text, parse_mode: "HTML", disable_web_page_preview: true })));
+    await Promise.all(chats.map(chat_id => tg("sendMessage", { chat_id, text, parse_mode: "HTML", disable_web_page_preview: true })));
     console.log(`Заказ №${order.id} на ${order.total} ₽ отправлен в Telegram`);
     send(res, 200, { ok: true, id: order.id, total: order.total });
   } catch (e) {

@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20">
+  <link rel="stylesheet" href="styles.css?v=23">
   <script>
     // При обновлении всегда начинаем с главного экрана, а не с места прошлой прокрутки
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -768,13 +768,20 @@
           <div class="info-card">
             <svg class="ic ic-lg" aria-hidden="true"><use href="#i-pin"/></svg>
             <h3>Самовывоз</h3>
-            <p>Приготовим к вашему приходу. <span class="js-address"></span></p>
+            <p>Приготовим к вашему приходу в любом из наших ресторанов — точку выберете при оформлении.</p>
           </div>
           <div class="info-card">
             <svg class="ic ic-lg" aria-hidden="true"><use href="#i-clock"/></svg>
             <h3>Часы работы</h3>
             <p class="js-hours"></p>
           </div>
+        </div>
+        <div class="locations" id="locations">
+          <div class="locations-head">
+            <h3><span class="js-address"></span></h3>
+            <p>Заберите заказ в любом — или приходите поесть фо на месте.</p>
+          </div>
+          <div class="locations-grid js-locations"></div>
         </div>
         <div class="finale-actions">
           <a href="/menu" class="btn btn-primary btn-lg magnetic">Открыть меню</a>
@@ -795,6 +802,7 @@
       <a class="js-phone-link" href="#"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span class="js-phone"></span></a>
       <p><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg><span class="js-address"></span></p>
       <p><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg><span class="js-hours"></span></p>
+      <ul class="footer-locations js-locations" data-variant="compact"></ul>
     </div>
   </div>
   <p class="footer-giant" aria-hidden="true">PHỞ VIỆT</p>
@@ -851,6 +859,12 @@
         <div class="seg" role="radiogroup" aria-label="Способ получения">
           <label><input type="radio" name="method" value="delivery" checked><span>Доставка</span></label>
           <label><input type="radio" name="method" value="pickup"><span>Самовывоз</span></label>
+        </div>
+
+        <div class="field" id="pickupField" hidden>
+          <label for="fPoint">Ресторан для самовывоза</label>
+          <select id="fPoint" name="point"></select>
+          <p class="err" id="fPoint-err"></p>
         </div>
 
         <div class="field">
@@ -943,9 +957,9 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
-<script src="menu.js?v=20"></script>
-<script src="app.js?v=20"></script>
-<script src="pwa.js?v=20" defer></script>
-<script src="fx.js?v=20" defer></script>
+<script src="menu.js?v=23"></script>
+<script src="app.js?v=23"></script>
+<script src="pwa.js?v=23" defer></script>
+<script src="fx.js?v=23" defer></script>
 </body>
 </html>
