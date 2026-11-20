@@ -951,3 +951,7 @@ html { scrollbar-width: thin; scrollbar-color: #4a2b27 var(--bg); }
 }
 /* Колонка финала не растягивается под ширину ленты ресторанов (grid-элемент по умолчанию min-width: auto) */
 .finale-copy, .finale-inner > * { min-width: 0; }
+
+/* Подсказка под полем оформления */
+.field-hint { margin: 0; font-size: 13px; color: var(--muted); }
+.field-hint:empty { display: none; }

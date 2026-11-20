@@ -71,10 +71,10 @@ function buildOrder(input, menu) {
   } : null;
   if (address && address.street.length < 5) errors.push("street");
 
-  // Самовывоз: точка должна быть из списка ресторанов в menu.js
+  // Ресторан (и для самовывоза, и для доставки) должен быть из списка в menu.js
   const locs = Array.isArray(menu.cfg.locations) ? menu.cfg.locations : [];
   let point = null;
-  if (method === "pickup" && locs.length) {
+  if (locs.length) {
     const l = locs.find(x => x.id === input.point);
     if (!l) errors.push("point");
     else point = { id: l.id, name: l.name || l.metro || l.id, address: l.address || "" };
@@ -110,7 +110,9 @@ function buildOrder(input, menu) {
 function formatMessage(o) {
   const lines = [
     `🍜 <b>Новый заказ №${o.id}</b>`,
-    o.method === "pickup" ? `🏃 <b>Самовывоз</b>${o.point ? ` — ${esc(o.point.name)}, ${esc(o.point.address)}` : ""}` : "🚚 <b>Доставка</b>",
+    o.method === "pickup"
+      ? `🏃 <b>Самовывоз</b>${o.point ? ` — ${esc(o.point.name)}, ${esc(o.point.address)}` : ""}`
+      : `🚚 <b>Доставка</b>${o.point ? ` · ресторан: ${esc(o.point.name)}` : ""}`,
     "",
     `👤 ${esc(o.name)}`,
     `📞 <a href="tel:${o.phone}">${esc(o.phone)}</a>`
@@ -156,7 +158,7 @@ function readBody(req, limit = 20000) {
   });
 }
 
-// Куда слать заказ: самовывоз — в чат точки (TELEGRAM_CHAT_ID_P1 …), если он задан; остальное — в общий TELEGRAM_CHAT_ID
+// Куда слать заказ: в чат выбранного ресторана (TELEGRAM_CHAT_ID_P1 …); если он не задан — в общий TELEGRAM_CHAT_ID
 function chatsFor(order) {
   if (order.point) {
     const own = (process.env["TELEGRAM_CHAT_ID_" + order.point.id.toUpperCase()] || "").split(",").map(s => s.trim()).filter(Boolean);

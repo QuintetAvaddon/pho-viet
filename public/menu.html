@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=23">
+  <link rel="stylesheet" href="styles.css?v=24">
 </head>
 <body class="page-menu">
 <script>document.documentElement.classList.add("page-menu")</script>
@@ -239,9 +239,10 @@
           <label><input type="radio" name="method" value="pickup"><span>Самовывоз</span></label>
         </div>
 
-        <div class="field" id="pickupField" hidden>
-          <label for="fPoint">Ресторан для самовывоза</label>
+        <div class="field" id="pointField" hidden>
+          <label for="fPoint" id="fPointLabel">Из какого ресторана доставить</label>
           <select id="fPoint" name="point"></select>
+          <p class="field-hint" id="fPoint-hint"></p>
           <p class="err" id="fPoint-err"></p>
         </div>
 
@@ -332,8 +333,8 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="menu.js?v=23"></script>
-<script src="app.js?v=23"></script>
-<script src="pwa.js?v=23" defer></script>
+<script src="menu.js?v=24"></script>
+<script src="app.js?v=24"></script>
+<script src="pwa.js?v=24" defer></script>
 </body>
 </html>

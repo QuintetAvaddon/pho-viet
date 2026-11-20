@@ -284,8 +284,11 @@
     const pickup = isPickup();
     $("#addressGroup").hidden = pickup;
     $("#fStreet").required = !pickup;
-    $("#pickupField").hidden = !pickup || !LOCS.length;
-    $("#fPoint").required = pickup && LOCS.length > 0;
+    // ресторан выбирается всегда: для самовывоза — где забрать, для доставки — откуда везти
+    $("#pointField").hidden = !LOCS.length;
+    $("#fPoint").required = LOCS.length > 0;
+    $("#fPointLabel").textContent = pickup ? "Ресторан для самовывоза" : "Из какого ресторана доставить";
+    $("#fPoint-hint").textContent = pickup ? "" : "Выберите ближайший к вам — так привезём быстрее";
     $("#changeField").hidden = form.payment.value !== "cash";
     $("#checkoutSummary").innerHTML = totalsHtml(pickup);
   }
@@ -311,7 +314,7 @@
     fName: v => v.trim().length >= 2 || "Укажите имя",
     fPhone: v => v.replace(/\D/g, "").length === 11 || "Введите телефон полностью: +7 и 10 цифр",
     fStreet: v => isPickup() || v.trim().length >= 5 || "Укажите улицу и номер дома",
-    fPoint: v => !isPickup() || !LOCS.length || !!locById(v) || "Выберите ресторан, где заберёте заказ"
+    fPoint: v => !LOCS.length || !!locById(v) || (isPickup() ? "Выберите ресторан, где заберёте заказ" : "Выберите ресторан, из которого доставить")
   };
   function validateField(id) {
     const el = $("#" + id), res = rules[id](el.value);
@@ -339,7 +342,7 @@
       method: pickup ? "pickup" : "delivery",
       customer: { name: fd.name.trim(), phone: fd.phone },
       address: pickup ? null : { street: fd.street, flat: fd.flat, entrance: fd.entrance, floor: fd.floor },
-      point: pickup ? (fd.point || null) : null,
+      point: fd.point || null,
       time: fd.time, payment: fd.payment, change: fd.change || null, comment: fd.comment || "",
       items: Object.entries(cart).map(([id, q]) => ({ id, name: BY_ID[id].name, price: BY_ID[id].price, qty: q })),
       subtotal: sub, delivery: fee, total: sub + fee
@@ -363,7 +366,7 @@
       $("#checkoutView").hidden = true; $("#successView").hidden = false;
       const when = order.time === "asap" ? (pickup ? "через 20–30 минут" : "в течение 30–60 минут") : `к ${order.time}`;
       $("#successText").innerHTML = `Номер заказа <b>№${order.id}</b> на сумму <b>${rub(order.total)}</b>.<br>
-        ${pickup ? `Заказ будет готов ${when}${locById(order.point) ? ` — ${esc(locName(locById(order.point)))}, ${esc(locById(order.point).address)}` : ""}.` : `Курьер привезёт его ${when}.`} Мы позвоним на ${esc(order.customer.phone)} для подтверждения.`;
+        ${pickup ? `Заказ будет готов ${when}${locById(order.point) ? ` — ${esc(locName(locById(order.point)))}, ${esc(locById(order.point).address)}` : ""}.` : `Курьер привезёт его ${when}${locById(order.point) ? ` · ресторан: ${esc(locName(locById(order.point)))}` : ""}.`} Мы позвоним на ${esc(order.customer.phone)} для подтверждения.`;
       $("#successTitle").focus();
       form.reset();
     } catch (err) {
