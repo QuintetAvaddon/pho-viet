@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Меню — Phở Việt, вьетнамская кухня</title>
+  <meta name="description" content="Фо Бо, нем, бань бао и другие блюда вьетнамской кухни. Закажите онлайн — бесплатная доставка от 600 ₽.">
+  <meta name="theme-color" content="#110909">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/favicon-48.png" sizes="48x48">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Phở Việt">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=18">
+</head>
+<body class="page-menu">
+<script>document.documentElement.classList.add("page-menu")</script>
+
+<!-- SVG-иконки и иллюстрации -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- UI -->
+    <symbol id="i-cart" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M6 6h15l-1.5 9h-12zM6 6 5 3H2M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM18 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M5 12h14"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></g></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" d="m12 2.8 2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></g></symbol>
+    <symbol id="i-truck" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h11v10H3zM14 9h4l3 3v4h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></g></symbol>
+    <symbol id="i-thumb" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M7 10v10H4V10zM7 10l4-7c1.7 0 2.6 1.2 2.2 2.8L12.5 9H19a2 2 0 0 1 2 2.3l-1.2 6.8A2 2 0 0 1 17.8 20H7"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></g></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 5a2 2 0 0 1 2-2z"/></symbol>
+    <symbol id="i-left" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M15 5l-7 7 7 7"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5v10h14V11h-1"/></g></symbol>
+    <symbol id="i-app" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M12 7v7M9 11l3 3 3-3"/></g></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-chili" viewBox="0 0 24 24"><path fill="currentColor" d="M15 6c3 0 5 2.4 4.4 5.6C18.3 17.4 11 21 4 20c4.5-2 7.4-5.7 8.1-10.1C12.4 7.4 13.4 6 15 6z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M15 6c0-1.6.8-2.6 2.4-3"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><path fill="currentColor" d="M20 4C9 4 4 9 4 16c0 1.4.3 2.7.8 4 1-4.5 4.3-8.4 9.2-10-4 2.6-6.4 6-7.3 10 1 .1 1.5 0 2.3 0C16 20 20 14 20 4z"/></symbol>
+
+    <!-- Иллюстрации блюд (используют currentColor + фирменные цвета) -->
+    <symbol id="d-bowl" viewBox="0 0 120 120">
+      <path d="M42 30c-6-6 6-10 0-18M60 30c-6-6 6-10 0-18M78 30c-6-6 6-10 0-18" fill="none" stroke="#CFC6B6" stroke-width="5" stroke-linecap="round"/>
+      <path d="M86 18 70 52M98 22 78 54" stroke="#6E1E1E" stroke-width="5" stroke-linecap="round"/>
+      <ellipse cx="60" cy="56" rx="44" ry="9" fill="#EAD9B9"/>
+      <path d="M16 56h88c0 24-20 40-44 40S16 80 16 56z" fill="#A3C46C"/>
+      <path d="M16 56h88c-.5 4-1.6 7.6-3.3 11H19.3C17.6 63.6 16.5 60 16 56z" fill="#8DB052"/>
+      <path d="M48 100h24l-3-6H51z" fill="#8DB052"/>
+      <g fill="#6E1E1E"><path d="M60 68c-3 4-3 9 0 12 3-3 3-8 0-12z"/><path d="M52 71c-4 2-5 7-3 10 4-1 6-5 3-10z"/><path d="M68 71c4 2 5 7 3 10-4-1-6-5-3-10z"/></g>
+    </symbol>
+    <symbol id="d-rice" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="78" rx="48" ry="16" fill="#E9E1D2"/>
+      <ellipse cx="60" cy="74" rx="44" ry="13" fill="#fff"/>
+      <path d="M30 72c0-14 13-24 30-24s30 10 30 24c-8 4-18 6-30 6s-22-2-30-6z" fill="#F4EBD6"/>
+      <g fill="#E3D3AE"><circle cx="45" cy="62" r="2"/><circle cx="55" cy="56" r="2"/><circle cx="66" cy="58" r="2"/><circle cx="75" cy="64" r="2"/><circle cx="60" cy="66" r="2"/></g>
+      <path d="M62 58c6-4 16-3 20 3-6 3-14 3-20-3z" fill="#A85A32"/>
+      <path d="M38 66c4-5 11-6 15-2-4 4-10 5-15 2z" fill="#A3C46C"/>
+      <circle cx="78" cy="70" r="4" fill="#E0763C"/>
+    </symbol>
+    <symbol id="d-wok" viewBox="0 0 120 120">
+      <path d="M50 26c-5-5 5-8 0-14M66 26c-5-5 5-8 0-14" fill="none" stroke="#CFC6B6" stroke-width="5" stroke-linecap="round"/>
+      <path d="M14 58h92c-2 20-22 34-46 34S16 78 14 58z" fill="#3A1414"/>
+      <path d="M104 64 116 60" stroke="#3A1414" stroke-width="6" stroke-linecap="round"/>
+      <path d="M22 58c6-16 22-24 38-24s32 8 38 24z" fill="#E7C27A"/>
+      <path d="M30 52c10-6 20 2 30-4s20 2 30-2M34 44c8-4 16 2 26-3s18 1 24 0" fill="none" stroke="#C9973E" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="44" cy="48" r="4" fill="#A3C46C"/><circle cx="76" cy="44" r="4" fill="#E0763C"/><path d="M58 40c4-3 9-2 11 1-4 2-8 2-11-1z" fill="#A85A32"/>
+    </symbol>
+    <symbol id="d-roll" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="84" rx="46" ry="12" fill="#E9E1D2"/>
+      <g transform="rotate(-18 60 60)">
+        <rect x="18" y="52" width="60" height="22" rx="11" fill="#E9A54B"/>
+        <path d="M30 54v18M44 54v18M58 54v18" stroke="#C47F2A" stroke-width="2.5"/>
+      </g>
+      <g transform="rotate(12 60 60)">
+        <rect x="44" y="62" width="60" height="22" rx="11" fill="#F2E7D4" stroke="#E2D2B5" stroke-width="2"/>
+        <path d="M56 66c6 4 14 4 20 0M78 66c6 4 12 4 18 0" stroke="#E57C6B" stroke-width="4" stroke-linecap="round" fill="none"/>
+        <path d="M54 76h40" stroke="#A3C46C" stroke-width="4" stroke-linecap="round"/>
+      </g>
+      <ellipse cx="96" cy="44" rx="12" ry="7" fill="#6E1E1E"/><ellipse cx="96" cy="42" rx="9" ry="4" fill="#B5442E"/>
+    </symbol>
+    <symbol id="d-salad" viewBox="0 0 120 120">
+      <path d="M14 60h92c0 20-20 34-46 34S14 80 14 60z" fill="#fff" stroke="#E2D9C8" stroke-width="3"/>
+      <path d="M22 60c2-14 14-20 24-16 4-10 22-12 28-2 10-4 22 4 24 18z" fill="#A3C46C"/>
+      <path d="M30 56c4-6 10-8 16-6M60 46c6-2 12 0 14 6M78 52c6-2 12 2 14 8" stroke="#6F9A32" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M44 54c4-6 12-6 16 0-4 4-12 4-16 0z" fill="#F3A64A"/>
+      <path d="M68 56c5-5 13-4 16 2-5 3-12 3-16-2z" fill="#E57C6B"/>
+      <circle cx="56" cy="60" r="3" fill="#6E1E1E"/>
+    </symbol>
+    <symbol id="d-bao" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="88" rx="46" ry="11" fill="#E9E1D2"/>
+      <path d="M22 82c-2-20 14-34 38-34s40 14 38 34z" fill="#FBF7EE" stroke="#E5D9C4" stroke-width="3"/>
+      <path d="M60 50c-3 6-3 12 0 18 3-6 3-12 0-18zM48 54c0 6 2 11 7 15M72 54c0 6-2 11-7 15" stroke="#E5D9C4" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M44 34c-5-5 5-8 0-14M60 32c-5-5 5-8 0-14M76 34c-5-5 5-8 0-14" fill="none" stroke="#CFC6B6" stroke-width="4" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="d-sauce" viewBox="0 0 120 120">
+      <ellipse cx="60" cy="80" rx="38" ry="12" fill="#E9E1D2"/>
+      <path d="M26 64h68c-2 14-16 22-34 22S28 78 26 64z" fill="#A3C46C"/>
+      <ellipse cx="60" cy="64" rx="34" ry="9" fill="#8DB052"/>
+      <ellipse cx="60" cy="64" rx="28" ry="6.5" fill="#B5442E"/>
+      <circle cx="52" cy="63" r="2" fill="#F3A64A"/><circle cx="64" cy="65" r="1.6" fill="#F3A64A"/><circle cx="70" cy="62" r="1.6" fill="#F3A64A"/>
+    </symbol>
+    <symbol id="d-drink" viewBox="0 0 120 120">
+      <path d="M68 14 60 40" stroke="#6E1E1E" stroke-width="5" stroke-linecap="round"/>
+      <path d="M38 36h44l-6 66H44z" fill="#fff" stroke="#E2D9C8" stroke-width="3"/>
+      <path d="M41 50h38l-4.6 50H45.6z" fill="#F3A64A"/>
+      <path d="M41 50h38l-1 10H42z" fill="#F7C27A"/>
+      <circle cx="86" cy="40" r="12" fill="#A3C46C"/><circle cx="86" cy="40" r="8" fill="#C9DE9C"/>
+    </symbol>
+    <symbol id="d-can" viewBox="0 0 120 120">
+      <rect x="40" y="22" width="40" height="80" rx="8" fill="#6E1E1E"/>
+      <rect x="44" y="18" width="32" height="8" rx="3" fill="#CFC6B6"/>
+      <rect x="40" y="48" width="40" height="26" fill="#A3C46C"/>
+      <path d="M48 61h24" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<a class="skip-link" href="#menuSections">Перейти к блюдам</a>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="site-header scrolled" id="top">
+  <div class="header-inner">
+    <a href="/" class="brand" aria-label="Phở Việt — на главную">
+      <span class="brand-mark"><img src="logo.png" alt="" width="40" height="39"></span>
+      <span class="brand-text"><span class="brand-name">Phở Việt</span><span class="brand-sub">вьетнамская кухня</span></span>
+    </a>
+    <nav class="main-nav" aria-label="Основная навигация">
+      <a href="/">Главная</a>
+      <a href="/menu" class="nav-cta" aria-current="page">Меню</a>
+      <a href="#contacts">Контакты</a>
+    </nav>
+    <button class="btn btn-glass header-install js-install" hidden><svg class="ic" aria-hidden="true"><use href="#i-app"/></svg>Приложение</button>
+    <button class="cart-btn" id="cartOpen" aria-label="Открыть корзину">
+      <svg class="ic" aria-hidden="true"><use href="#i-cart"/></svg>
+      <span class="cart-btn-total" id="headerTotal">0 ₽</span>
+      <span class="cart-badge" id="cartCount" aria-live="polite">0</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- ============ Меню ============ -->
+  <section class="menu" id="menu" aria-labelledby="menuTitle">
+    <div class="container menu-intro">
+      <p class="chapter-label"><span class="dash"></span>Phở Việt · вьетнамская кухня</p>
+      <h1 id="menuTitle">Меню</h1>
+      <p class="menu-facts"><span><svg class="ic" aria-hidden="true"><use href="#i-star"/></svg>4.8 · 650+ оценок</span><span><svg class="ic" aria-hidden="true"><use href="#i-truck"/></svg>Бесплатная доставка от 600 ₽</span><span><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg><span class="js-hours"></span></span></p>
+    </div>
+    <div class="menu-bar">
+      <div class="container menu-bar-inner">
+        <nav class="cat-nav" id="catNav" aria-label="Категории меню"></nav>
+        <label class="search">
+          <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
+          <span class="sr-only">Поиск по меню</span>
+          <input type="search" id="search" placeholder="Найти блюдо" autocomplete="off">
+        </label>
+      </div>
+    </div>
+    <div class="container" id="menuSections"></div>
+    <div class="container empty-search" id="emptySearch" hidden>
+      <p>Ничего не нашлось. Попробуйте «фо», «рис» или «нем».</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer site-footer-compact" id="contacts">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <span class="brand-mark big"><img src="logo.png" alt="Phở Việt" width="88" height="85"></span>
+      <p>Phở Việt — вьетнамская кухня</p>
+      <button class="btn btn-glass js-install" hidden><svg class="ic" aria-hidden="true"><use href="#i-app"/></svg>Установить приложение</button>
+    </div>
+    <div class="footer-contacts">
+      <a class="js-phone-link" href="#"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span class="js-phone"></span></a>
+      <p><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg><span class="js-address"></span></p>
+      <p><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg><span class="js-hours"></span></p>
+    </div>
+  </div>
+  <p class="container copyright">© <span id="year"></span> Phở Việt</p>
+</footer>
+
+<!-- Плавающая корзина на мобильных -->
+<button class="mobile-cart" id="mobileCart" hidden>
+  <span><svg class="ic" aria-hidden="true"><use href="#i-cart"/></svg> <span id="mobileCount">0</span> в корзине</span>
+  <b id="mobileTotal">0 ₽</b>
+</button>
+
+<!-- Карточка блюда -->
+<div class="overlay" id="dishOverlay" hidden>
+  <div data-lenis-prevent class="modal dish-modal" role="dialog" aria-modal="true" aria-labelledby="dishName">
+    <button class="icon-btn modal-close" data-close aria-label="Закрыть"><svg class="ic"><use href="#i-close"/></svg></button>
+    <div class="dish-art" id="dishArt"></div>
+    <div class="dish-body">
+      <div class="dish-tags" id="dishTags"></div>
+      <h3 id="dishName"></h3>
+      <p class="muted" id="dishMeta"></p>
+      <p id="dishDesc"></p>
+      <div class="dish-actions">
+        <div class="stepper" aria-label="Количество">
+          <button class="icon-btn" id="dishMinus" aria-label="Меньше"><svg class="ic"><use href="#i-minus"/></svg></button>
+          <span id="dishQty" aria-live="polite">1</span>
+          <button class="icon-btn" id="dishPlus" aria-label="Больше"><svg class="ic"><use href="#i-plus"/></svg></button>
+        </div>
+        <button class="btn btn-primary btn-lg" id="dishAdd">Добавить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Корзина -->
+<div class="overlay overlay-drawer" id="cartOverlay" hidden>
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+    <div class="drawer-head">
+      <h3 id="cartTitle">Ваш заказ</h3>
+      <button class="icon-btn" data-close aria-label="Закрыть корзину"><svg class="ic"><use href="#i-close"/></svg></button>
+    </div>
+    <div class="drawer-body" id="cartBody" data-lenis-prevent></div>
+    <div class="drawer-foot" id="cartFoot"></div>
+  </aside>
+</div>
+
+<!-- Оформление заказа -->
+<div class="overlay" id="checkoutOverlay" hidden>
+  <div data-lenis-prevent class="modal checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+    <button class="icon-btn modal-close" data-close aria-label="Закрыть"><svg class="ic"><use href="#i-close"/></svg></button>
+    <div id="checkoutView">
+      <h3 id="checkoutTitle">Оформление заказа</h3>
+      <form id="checkoutForm" novalidate>
+        <div class="seg" role="radiogroup" aria-label="Способ получения">
+          <label><input type="radio" name="method" value="delivery" checked><span>Доставка</span></label>
+          <label><input type="radio" name="method" value="pickup"><span>Самовывоз</span></label>
+        </div>
+
+        <div class="field">
+          <label for="fName">Имя</label>
+          <input id="fName" name="name" autocomplete="given-name" required>
+          <p class="err" id="fName-err"></p>
+        </div>
+        <div class="field">
+          <label for="fPhone">Телефон</label>
+          <input id="fPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" required>
+          <p class="err" id="fPhone-err"></p>
+        </div>
+
+        <fieldset class="address-group" id="addressGroup">
+          <legend class="sr-only">Адрес доставки</legend>
+          <div class="field">
+            <label for="fStreet">Улица и дом</label>
+            <input id="fStreet" name="street" autocomplete="street-address" required>
+            <p class="err" id="fStreet-err"></p>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="fFlat">Квартира</label><input id="fFlat" name="flat"></div>
+            <div class="field"><label for="fEntrance">Подъезд</label><input id="fEntrance" name="entrance" inputmode="numeric"></div>
+            <div class="field"><label for="fFloor">Этаж</label><input id="fFloor" name="floor" inputmode="numeric"></div>
+          </div>
+        </fieldset>
+
+        <div class="field">
+          <label for="fTime">Когда</label>
+          <select id="fTime" name="time"></select>
+        </div>
+
+        <div class="field">
+          <span class="label">Оплата</span>
+          <div class="seg" role="radiogroup" aria-label="Способ оплаты">
+            <label><input type="radio" name="payment" value="card" checked><span>Картой при получении</span></label>
+            <label><input type="radio" name="payment" value="cash"><span>Наличными</span></label>
+          </div>
+        </div>
+        <div class="field" id="changeField" hidden>
+          <label for="fChange">С какой суммы подготовить сдачу</label>
+          <input id="fChange" name="change" inputmode="numeric" placeholder="Например, 2000">
+        </div>
+
+        <div class="field">
+          <label for="fComment">Комментарий</label>
+          <textarea id="fComment" name="comment" rows="2" placeholder="Например: без кинзы, позвонить за 10 минут"></textarea>
+        </div>
+
+        <div class="summary" id="checkoutSummary"></div>
+
+        <label class="consent"><input type="checkbox" id="fConsent" required> <span>Согласен на обработку персональных данных для выполнения заказа</span></label>
+        <p class="err" id="fConsent-err"></p>
+
+        <button type="submit" class="btn btn-primary btn-lg btn-block" id="submitBtn">Подтвердить заказ</button>
+        <p class="err submit-err" id="submitErr" role="alert"></p>
+      </form>
+    </div>
+    <div id="successView" hidden>
+      <div class="success">
+        <div class="success-icon"><svg class="ic"><use href="#i-check"/></svg></div>
+        <h3 tabindex="-1" id="successTitle">Заказ принят!</h3>
+        <p id="successText"></p>
+        <button class="btn btn-primary btn-lg" data-close>Отлично</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Инструкция установки для iPhone -->
+<div class="overlay" id="iosInstall" hidden>
+  <div class="modal install-modal" role="dialog" aria-modal="true" aria-labelledby="iosTitle">
+    <button class="icon-btn modal-close" data-close aria-label="Закрыть"><svg class="ic"><use href="#i-close"/></svg></button>
+    <div class="install-head">
+      <span class="brand-mark big"><img src="/icons/icon-192.png" alt="" width="86" height="86"></span>
+      <h3 id="iosTitle">Установить Phở Việt</h3>
+      <p class="muted">Иконка появится на экране «Домой» — меню и заказ в пару касаний.</p>
+    </div>
+    <ol class="install-steps">
+      <li><span class="step-n">1</span><span>Нажмите <b>«Поделиться»</b> <svg class="ic" aria-hidden="true"><use href="#i-share"/></svg> внизу экрана Safari</span></li>
+      <li><span class="step-n">2</span><span>Выберите <b>«На экран „Домой“»</b></span></li>
+      <li><span class="step-n">3</span><span>Нажмите <b>«Добавить»</b></span></li>
+    </ol>
+    <button class="btn btn-primary btn-lg btn-block" data-close>Понятно</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="menu.js?v=18"></script>
+<script src="app.js?v=18"></script>
+<script src="pwa.js?v=18" defer></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "pho-viet",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Сайт вьетнамской кухни Phở Việt с онлайн-заказом в Telegram",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
