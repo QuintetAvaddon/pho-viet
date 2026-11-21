@@ -53,6 +53,13 @@ const HOURS = (() => {
   return ctx.window.PV_HOURS;
 })();
 
+/* ---------- Промокоды (тот же код, что на сайте: public/coupons.js) ---------- */
+const COUPON = (() => {
+  const ctx = { window: {}, Date };
+  vm.runInNewContext(fs.readFileSync(path.join(PUBLIC_DIR, "coupons.js"), "utf8"), ctx);
+  return ctx.window.PV_COUPON;
+})();
+
 /* ---------- Telegram ---------- */
 async function tg(method, body) {
   const r = await fetch(`${TG_API}/bot${BOT_TOKEN}/${method}`, {
@@ -130,8 +137,17 @@ function buildOrder(input, menu) {
 
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
   const delivery = method === "pickup" || subtotal >= menu.cfg.freeDeliveryFrom ? 0 : menu.cfg.deliveryFee;
+  // Промокод: скидка от суммы блюд, проверка как на сайте; примеры (demo) не действуют
+  let coupon = null, couponError = "";
+  const couponCode = clip(input.coupon, 30);
+  if (couponCode) {
+    const r = COUPON.check(couponCode, subtotal, menu.cfg.promos);
+    if (r.ok) coupon = { code: r.code, discount: r.discount };
+    else { errors.push("coupon"); couponError = r.message; }
+  }
+  const discount = coupon ? coupon.discount : 0;
   return {
-    errors, closed,
+    errors, closed, couponError,
     order: {
       id: String(Date.now()).slice(-6),
       method, name,
@@ -141,7 +157,7 @@ function buildOrder(input, menu) {
       payment: input.payment === "cash" ? "cash" : "card",
       change: clip(input.change, 12),
       comment: clip(input.comment, 500),
-      items, subtotal, delivery, total: subtotal + delivery
+      items, subtotal, coupon: coupon && coupon.code, discount, delivery, total: subtotal - discount + delivery
     }
   };
 }
@@ -166,6 +182,7 @@ function formatMessage(o) {
   lines.push("", "<b>Состав:</b>");
   for (const i of o.items) lines.push(`• ${esc(i.name)} × ${i.qty} — ${rub(i.price * i.qty)}`);
   lines.push("", `Блюда: ${rub(o.subtotal)}`);
+  if (o.discount) lines.push(`🎟 Промокод ${esc(o.coupon)}: −${rub(o.discount)}`);
   if (o.method === "delivery") lines.push(`Доставка: ${o.delivery ? rub(o.delivery) : "бесплатно"}`);
   lines.push(`<b>Итого: ${rub(o.total)}</b>`);
   return lines.join("\n");
@@ -213,11 +230,12 @@ async function handleOrder(req, res) {
   let input;
   try { input = JSON.parse(await readBody(req)); } catch { return send(res, 400, { ok: false, error: "Некорректный запрос" }); }
 
-  const { errors, closed, order } = buildOrder(input, loadMenu());
+  const { errors, closed, couponError, order } = buildOrder(input, loadMenu());
   if (errors.includes("closed")) {
     return send(res, 422, { ok: false, code: "closed", error: `Сейчас этот ресторан не принимает заказы${closed ? `. Приём заказов ${closed}` : ""}` });
   }
   if (errors.includes("time")) return send(res, 422, { ok: false, code: "time", error: "Выбранное время уже недоступно — выберите другое" });
+  if (errors.includes("coupon")) return send(res, 422, { ok: false, code: "coupon", error: couponError || "Промокод не действует" });
   if (errors.length) return send(res, 422, { ok: false, error: "Проверьте данные заказа", fields: errors });
 
   const chats = chatsFor(order);

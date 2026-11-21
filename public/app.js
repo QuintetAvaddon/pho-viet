@@ -23,11 +23,18 @@
   try { cart = JSON.parse(localStorage.getItem(CART_KEY)) || {}; } catch { cart = {}; }
   for (const id of Object.keys(cart)) if (!BY_ID[id]) delete cart[id];
 
-  const save = () => localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  const save = () => { localStorage.setItem(CART_KEY, JSON.stringify(cart)); document.dispatchEvent(new Event("cart:change")); };
   const count = () => Object.values(cart).reduce((a, b) => a + b, 0);
   const subtotal = () => Object.entries(cart).reduce((s, [id, q]) => s + BY_ID[id].price * q, 0);
   const isPickup = () => $('input[name="method"]:checked')?.value === "pickup";
   const deliveryFee = (sub, pickup) => pickup || sub === 0 || sub >= CFG.freeDeliveryFrom ? 0 : CFG.deliveryFee;
+  // Промокод: проверяется тем же кодом, что и на сервере (coupons.js); скидка — от суммы блюд
+  let couponCode = "";
+  const couponNow = () => {
+    if (!couponCode || !window.PV_COUPON) return null;
+    const r = window.PV_COUPON.check(couponCode, subtotal(), CFG.promos);
+    return r.ok ? r : null;
+  };
 
   function setQty(id, q) {
     if (q <= 0) delete cart[id]; else cart[id] = Math.min(q, 99);
@@ -51,7 +58,7 @@
 
   function controlHtml(d) {
     const q = cart[d.id];
-    if (!q) return `<button class="add-btn" data-add="${d.id}" aria-label="Добавить «${esc(d.name)}» в корзину"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg><span class="lbl">В корзину</span></button>`;
+    if (!q) return `<button class="add-btn" data-add="${d.id}" aria-label="Добавить «${esc(d.name)}» в корзину"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg><span class="lbl">Добавить</span></button>`;
     return `<div class="mini-stepper" role="group" aria-label="Количество «${esc(d.name)}»">
       <button data-dec="${d.id}" aria-label="Убрать одну порцию"><svg class="ic" aria-hidden="true"><use href="#i-minus"/></svg></button>
       <span>${q}</span>
@@ -59,9 +66,9 @@
     </div>`;
   }
 
-  function cardHtml(d) {
+  function cardHtml(d, featured = false) {
     const rating = d.rating ? `<span class="rating" title="Нравится ${d.rating}% гостей"><svg class="ic" aria-hidden="true"><use href="#i-thumb"/></svg>${d.rating}%</span>` : "";
-    return `<article class="card" style="--card-bg:${BG[d.icon]}" data-id="${d.id}">
+    return `<article class="card${featured ? " is-featured" : ""}" style="--card-bg:${BG[d.icon]}" data-id="${d.id}">
       <button class="card-art" data-open="${d.id}" aria-label="Подробнее: ${esc(d.name)}">${art(d)}</button>
       <div class="card-badges">${tagsHtml(d)}</div>
       <div class="card-body">
@@ -83,7 +90,7 @@
       if (!items.length) return "";
       return `<section class="menu-section" id="cat-${c.id}" aria-labelledby="h-${c.id}">
         <h2 id="h-${c.id}">${esc(c.name)} <span class="count">${items.length}</span></h2>
-        <div class="grid">${items.map(cardHtml).join("")}</div>
+        <div class="grid">${items.map((d, i) => cardHtml(d, i === 0 && !term)).join("")}</div>
       </section>`;
     }).join("");
     $("#emptySearch").hidden = shown > 0;
@@ -113,11 +120,12 @@
   }
 
   function totalsHtml(pickup) {
-    const sub = subtotal(), fee = deliveryFee(sub, pickup);
+    const sub = subtotal(), fee = deliveryFee(sub, pickup), cp = couponNow(), disc = cp ? cp.discount : 0;
     return `<div class="totals">
       <div><span>Блюда</span><span>${rub(sub)}</span></div>
+      ${cp ? `<div class="discount"><span>Промокод ${esc(cp.code)}</span><span>−${rub(disc)}</span></div>` : ""}
       <div><span>${pickup ? "Самовывоз" : "Доставка"}</span><span>${fee ? rub(fee) : "бесплатно"}</span></div>
-      <div class="grand"><span>Итого</span><span>${rub(sub + fee)}</span></div>
+      <div class="grand"><span>Итого</span><span>${rub(sub - disc + fee)}</span></div>
     </div>`;
   }
 
@@ -277,8 +285,12 @@
     fillPoints();
     const saved = JSON.parse(localStorage.getItem("phoviet_contact") || "{}");
     for (const k of ["name", "phone", "street", "flat", "entrance", "floor", "point"]) if (saved[k] && form[k] && !form[k].value) form[k].value = saved[k];
+    const preferred = localStorage.getItem("phoviet_point");
+    if (form.point && preferred && locById(preferred)) form.point.value = preferred;
     if (form.point && !accepting(locById(form.point.value))) form.point.value = "";
     fillTimes();
+    const pf = $("#promoField");
+    if (pf) pf.hidden = !(window.PV_COUPON && window.PV_COUPON.active(CFG.promos).length); // поле — только если есть действующие купоны
     syncForm();
     openOverlay($("#checkoutOverlay"), "#fName");
   }
@@ -294,8 +306,21 @@
     $("#fPoint-hint").textContent = pickup ? "" : "Выберите ближайший к вам — так привезём быстрее";
     $("#changeField").hidden = form.payment.value !== "cash";
     $("#checkoutSummary").innerHTML = totalsHtml(pickup);
+    // промокод перестал подходить (например, сумма стала меньше) — говорим почему
+    if (couponCode && !couponNow() && $("#fPromo-err")) {
+      $("#fPromo-err").textContent = window.PV_COUPON.check(couponCode, subtotal(), CFG.promos).message || "";
+      $("#fPromo-hint").textContent = "";
+    }
     syncHours();
   }
+  $("#promoApply")?.addEventListener("click", () => {
+    const r = window.PV_COUPON ? window.PV_COUPON.check($("#fPromo").value, subtotal(), CFG.promos) : { ok: false, message: "" };
+    couponCode = r.ok ? r.code : "";
+    $("#fPromo-err").textContent = r.ok ? "" : r.message;
+    $("#fPromo-hint").textContent = r.ok ? `Скидка ${rub(r.discount)}` : "";
+    syncForm();
+  });
+  $("#fPromo")?.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("#promoApply").click(); } });
   // Если сейчас ни одна точка не принимает заказы — показываем часы приёма и выключаем кнопку
   function syncHours() {
     const open = !LOCS.length || LOCS.some(accepting);
@@ -309,7 +334,10 @@
   }
   form.addEventListener("change", e => {
     if (["method", "payment"].includes(e.target.name)) syncForm();
-    if (e.target.name === "point") { fillTimes(); validateField("fPoint"); }
+    if (e.target.name === "point") {
+      fillTimes(); validateField("fPoint");
+      if (e.target.value) { localStorage.setItem("phoviet_point", e.target.value); document.dispatchEvent(new CustomEvent("point:change", { detail: e.target.value })); }
+    }
   });
 
   // Маска телефона +7 (XXX) XXX-XX-XX
@@ -369,6 +397,7 @@
       point: fd.point || null,
       time: fd.time, payment: fd.payment, change: fd.change || null, comment: fd.comment || "",
       consent: true,
+      coupon: couponNow() ? couponCode : null,
       items: Object.entries(cart).map(([id, q]) => ({ id, name: BY_ID[id].name, price: BY_ID[id].price, qty: q })),
       subtotal: sub, delivery: fee, total: sub + fee
     };
@@ -394,8 +423,16 @@
         ${pickup ? `Заказ будет готов ${when}${locById(order.point) ? ` — ${esc(locName(locById(order.point)))}, ${esc(locById(order.point).address)}` : ""}.` : `Курьер привезёт его ${when}${locById(order.point) ? ` · ресторан: ${esc(locName(locById(order.point)))}` : ""}.`} Мы позвоним на ${esc(order.customer.phone)} для подтверждения.`;
       $("#successTitle").focus();
       form.reset();
+      couponCode = "";
+      if ($("#fPromo-hint")) { $("#fPromo-hint").textContent = ""; $("#fPromo-err").textContent = ""; }
     } catch (err) {
-      if (err.code === "closed" || err.code === "time") {
+      if (err.code === "coupon") {
+        // промокод перестал действовать — убираем скидку и показываем причину
+        couponCode = "";
+        if ($("#fPromo-err")) { $("#fPromo-err").textContent = err.message; $("#fPromo-hint").textContent = ""; }
+        syncForm();
+        showSubmitError(err.message);
+      } else if (err.code === "closed" || err.code === "time") {
         // точка закрылась, пока гость оформлял, или время устарело — обновляем список и показываем причину
         fillPoints(); fillTimes(); syncForm();
         showSubmitError(err.message);
@@ -544,7 +581,13 @@
     sync();
   }
 
-  window.PV = { openOverlay, toast };
+  window.PV = { openOverlay, toast, openCart: () => openOverlay($("#cartOverlay")) };
+  {
+    const qs = new URLSearchParams(location.search);
+    const later = fn => setTimeout(fn, document.getElementById("splash") ? 1200 : 250);
+    if (qs.get("cart") && $("#cartOverlay")) later(() => openOverlay($("#cartOverlay")));
+    else if (qs.get("dish") && BY_ID[qs.get("dish")]) later(() => openDish(qs.get("dish")));
+  }
 
   renderPopular();
   renderMenu();

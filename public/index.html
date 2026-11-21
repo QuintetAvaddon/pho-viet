@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=30">
+  <link rel="stylesheet" href="styles.css?v=31">
   <script>
     // При обновлении всегда начинаем с главного экрана, а не с места прошлой прокрутки
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -943,6 +943,16 @@
           <input id="fChange" name="change" inputmode="numeric" placeholder="Например, 2000">
         </div>
 
+        <div class="field" id="promoField" hidden>
+          <label for="fPromo">Промокод</label>
+          <div class="promo-input">
+            <input id="fPromo" name="promo" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Если есть">
+            <button type="button" class="btn btn-glass" id="promoApply">Применить</button>
+          </div>
+          <p class="field-hint" id="fPromo-hint"></p>
+          <p class="err" id="fPromo-err"></p>
+        </div>
+
         <div class="field">
           <label for="fComment">Комментарий</label>
           <textarea id="fComment" name="comment" rows="2" placeholder="Например: без кинзы, позвонить за 10 минут"></textarea>
@@ -992,10 +1002,11 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
-<script src="hours.js?v=30"></script>
-<script src="menu.js?v=30"></script>
-<script src="app.js?v=30"></script>
-<script src="pwa.js?v=30" defer></script>
-<script src="fx.js?v=30" defer></script>
+<script src="hours.js?v=31"></script>
+<script src="coupons.js?v=31"></script>
+<script src="menu.js?v=31"></script>
+<script src="app.js?v=31"></script>
+<script src="pwa.js?v=31" defer></script>
+<script src="fx.js?v=31" defer></script>
 </body>
 </html>

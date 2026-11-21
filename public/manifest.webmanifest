@@ -4,7 +4,7 @@
   "description": "Фо Бо, нем, бань бао и другие блюда вьетнамской кухни с доставкой.",
   "lang": "ru",
   "id": "/",
-  "start_url": "/menu?source=app",
+  "start_url": "/app?source=app",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
@@ -18,6 +18,6 @@
   ],
   "shortcuts": [
     { "name": "Меню", "short_name": "Меню", "url": "/menu", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "О ресторане", "short_name": "Главная", "url": "/", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+    { "name": "Акции и купоны", "short_name": "Акции", "url": "/promo", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }
