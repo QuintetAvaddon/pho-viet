@@ -197,7 +197,7 @@
   gsap.set(".moon", { scale: 0.6, opacity: 0 });
   gsap.set([".karst-far", ".karst-near", ".town", ".front"], { opacity: 0 });
   gsap.set(".lantern", { y: -200 });
-  gsap.set(".hero-ui > :not(.hero-copy)", { opacity: 0 });
+  gsap.set(".hero-ui > :not(.hero-copy-wrap)", { opacity: 0 });
 
   const intro = () => {
     hideLoader();
@@ -209,7 +209,7 @@
       .to(letters, { y: 0, opacity: 1, duration: 1.6, stagger: 0.12 }, 0.7)
       .to(".front", { opacity: 1, duration: 1.4 }, 0.9)
       .to(".lantern", { y: 0, duration: 2, ease: "elastic.out(1, 0.5)", stagger: 0.12 }, 1)
-      .to(".hero-ui > :not(.hero-copy)", { opacity: 1, duration: 1, stagger: 0.08 }, 1.3);
+      .to(".hero-ui > :not(.hero-copy-wrap)", { opacity: 1, duration: 1, stagger: 0.08 }, 1.3);
   };
   const ready = document.fonts ? document.fonts.ready : Promise.resolve();
   Promise.race([ready, new Promise(r => setTimeout(r, 2500))]).then(() => setTimeout(intro, 350));

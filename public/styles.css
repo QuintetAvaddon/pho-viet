@@ -1049,3 +1049,27 @@ html.hero-off .petals i, html.hero-off .petals i b, html.hero-off .petals u { an
 /* на странице вакансий текст .legal не должен перекрашивать ошибки и подсказки формы */
 .legal .err { color: var(--danger); }
 .legal .field-hint { color: var(--muted); }
+
+/* =========================================================
+   Первый экран: текст всегда между заголовком главы и навигацией 01–05, кнопки видны
+   ========================================================= */
+/* Центрирование обёрткой на flex, а не translate: GSAP при анимации сбрасывал translate, и текст уезжал вниз */
+.hero-copy-wrap { position: absolute; left: 28px; right: 28px; top: calc(var(--header-h) + 56px); bottom: 92px; display: flex; align-items: center; pointer-events: none; }
+.hero-copy { position: relative; left: auto; right: auto; top: auto; bottom: auto; translate: none; pointer-events: auto; }
+/* на невысоких экранах ноутбуков текст уменьшается по высоте окна, чтобы целиком помещаться с кнопками */
+.hero-lead { font-size: clamp(26px, min(3.3vw, 6.4vh), 46px); margin-bottom: clamp(10px, 2.2vh, 18px); }
+.hero-copy p { font-size: clamp(14px, 2.4vh, 16px); margin: 0; }
+.hero-actions { margin-top: clamp(14px, 3vh, 26px); }
+@media (min-width: 721px) {
+  .hero { min-height: 500px; } /* было 620: на низком окне низ первого экрана с кнопками уходил за край */
+  /* низ сцены плотно уходит в цвет страницы — стык со следующим блоком не виден */
+  .vignette { background: radial-gradient(ellipse at center, transparent 45%, rgba(8, 4, 4, .75) 100%), linear-gradient(180deg, rgba(17, 9, 9, .4) 0%, transparent 18%, transparent 68%, var(--bg) 96%); }
+}
+@media (max-width: 720px) {
+  .hero-copy-wrap { left: 18px; right: 18px; top: auto; bottom: 90px; display: block; }
+  .hero-lead { font-size: 30px; margin-bottom: 18px; }
+  .hero-copy p { font-size: 15px; }
+  .hero-actions { margin-top: 26px; }
+}
+/* Сборка фо начинается с того же цвета, которым заканчивается первый экран */
+.assemble::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 24vh; background: linear-gradient(var(--bg), rgba(17, 9, 9, 0)); pointer-events: none; }

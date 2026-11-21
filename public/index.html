@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=29">
+  <link rel="stylesheet" href="styles.css?v=30">
   <script>
     // При обновлении всегда начинаем с главного экрана, а не с места прошлой прокрутки
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -291,12 +291,15 @@
     <div class="hero-ui">
       <p class="chapter-label"><span class="dash"></span>Глава 01 — Ночной Ханой</p>
 
-      <div class="hero-copy" id="heroCopy">
-        <h2 class="hero-lead">Там, где бульон<br>томится <em>двенадцать</em><br>часов.</h2>
-        <p>Говяжьи кости, жжёный имбирь, бадьян и корица. Фо, который варят так же, как на улицах Ханоя, — и привозят к вашей двери.</p>
-        <div class="hero-actions">
-          <a href="/menu" class="btn btn-primary btn-lg magnetic">Открыть меню</a>
-          <button class="btn btn-glass btn-lg magnetic js-install" hidden><svg class="ic" aria-hidden="true"><use href="#i-app"/></svg>Установить приложение</button>
+      <!-- обёртка центрирует текст между заголовком главы и навигацией 01–05 (без translate, который сбивает GSAP) -->
+      <div class="hero-copy-wrap">
+        <div class="hero-copy" id="heroCopy">
+          <h2 class="hero-lead">Там, где бульон<br>томится <em>двенадцать</em><br>часов.</h2>
+          <p>Говяжьи кости, жжёный имбирь, бадьян и корица. Фо, который варят так же, как на улицах Ханоя, — и привозят к вашей двери.</p>
+          <div class="hero-actions">
+            <a href="/menu" class="btn btn-primary btn-lg magnetic">Открыть меню</a>
+            <button class="btn btn-glass btn-lg magnetic js-install" hidden><svg class="ic" aria-hidden="true"><use href="#i-app"/></svg>Установить приложение</button>
+          </div>
         </div>
       </div>
 
@@ -989,10 +992,10 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
-<script src="hours.js?v=29"></script>
-<script src="menu.js?v=29"></script>
-<script src="app.js?v=29"></script>
-<script src="pwa.js?v=29" defer></script>
-<script src="fx.js?v=29" defer></script>
+<script src="hours.js?v=30"></script>
+<script src="menu.js?v=30"></script>
+<script src="app.js?v=30"></script>
+<script src="pwa.js?v=30" defer></script>
+<script src="fx.js?v=30" defer></script>
 </body>
 </html>
