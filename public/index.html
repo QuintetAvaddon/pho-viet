@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=26">
+  <link rel="stylesheet" href="styles.css?v=27">
   <script>
     // При обновлении всегда начинаем с главного экрана, а не с места прошлой прокрутки
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -325,14 +325,13 @@
       <div class="asm-glow" aria-hidden="true"></div>
       <div class="asm-copy">
         <p class="chapter-label"><span class="dash"></span>Глава 02 — Как рождается чаша</p>
-        <h2 id="asmTitle" class="sr-only">Как собирается Фо Бо: бульон, лапша, говядина, зелень, заливка кипящим бульоном, подача</h2>
+        <h2 id="asmTitle" class="sr-only">Как собирается Фо Бо: лапша, говядина, зелень, кипящий бульон, подача</h2>
         <ol class="asm-steps">
-          <li class="is-active"><span class="asm-n">01</span><span><b>Бульон</b>12 часов на медленном огне</span></li>
-          <li><span class="asm-n">02</span><span><b>Лапша</b>Свежая рисовая лапша</span></li>
-          <li><span class="asm-n">03</span><span><b>Говядина</b>Тонкие ломтики говядины</span></li>
-          <li><span class="asm-n">04</span><span><b>Зелень</b>Кинза, лук, чили</span></li>
-          <li><span class="asm-n">05</span><span><b>Заливка</b>Кипящий бульон заваривает говядину</span></li>
-          <li><span class="asm-n">06</span><span><b>Подача</b>На бамбуковом подносе, как в Ханое</span></li>
+          <li class="is-active"><span class="asm-n">01</span><span><b>Лапша</b>Свежая рисовая лапша</span></li>
+          <li><span class="asm-n">02</span><span><b>Говядина</b>Тонкие ломтики говядины</span></li>
+          <li><span class="asm-n">03</span><span><b>Зелень</b>Кинза, лук, чили</span></li>
+          <li><span class="asm-n">04</span><span><b>Бульон</b>Кипящий бульон заваривает говядину</span></li>
+          <li><span class="asm-n">05</span><span><b>Подача</b>На бамбуковом подносе, как в Ханое</span></li>
         </ol>
         <div class="asm-progress" aria-hidden="true"><span id="asmBar"></span></div>
       </div>
@@ -795,6 +794,10 @@
           </div>
           <div class="locations-grid js-locations"></div>
         </div>
+        <a class="jobs-cta" href="/jobs">
+          <span><b>Работа в Phở Việt</b>Ищем людей в команду — оставьте заявку, менеджер ресторана перезвонит</span>
+          <svg class="ic" aria-hidden="true"><use href="#i-right"/></svg>
+        </a>
         <div class="finale-actions">
           <a href="/menu" class="btn btn-primary btn-lg magnetic">Открыть меню</a>
           <button class="btn btn-glass btn-lg magnetic js-install" hidden><svg class="ic" aria-hidden="true"><use href="#i-app"/></svg>Установить приложение</button>
@@ -818,7 +821,7 @@
     </div>
   </div>
   <p class="footer-giant" aria-hidden="true">PHỞ VIỆT</p>
-  <p class="container copyright">© <span id="year"></span> Phở Việt · <a href="/privacy">Политика обработки персональных данных</a></p>
+  <p class="container copyright">© <span id="year"></span> Phở Việt · <a href="/jobs">Работа у нас</a> · <a href="/privacy">Политика обработки персональных данных</a></p>
 </footer>
 
 <!-- Плавающая корзина на мобильных -->
@@ -972,10 +975,10 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
-<script src="hours.js?v=26"></script>
-<script src="menu.js?v=26"></script>
-<script src="app.js?v=26"></script>
-<script src="pwa.js?v=26" defer></script>
-<script src="fx.js?v=26" defer></script>
+<script src="hours.js?v=27"></script>
+<script src="menu.js?v=27"></script>
+<script src="app.js?v=27"></script>
+<script src="pwa.js?v=27" defer></script>
+<script src="fx.js?v=27" defer></script>
 </body>
 </html>

@@ -2,6 +2,7 @@
   Сервер сайта Phở Việt.
   - раздаёт сайт из папки public
   - принимает заказы (POST /api/order) и отправляет их в Telegram
+  - принимает заявки на работу (POST /api/job) и отправляет их в Telegram ресторана
   - принимает сообщения бота (POST /api/tg): в группе бот отвечает ID чата и к какому ресторану он привязан
 
   Запуск:            node server.js
@@ -235,6 +236,63 @@ async function handleOrder(req, res) {
   }
 }
 
+/* ---------- Заявки на работу ---------- */
+const yearsWord = n => (n % 10 === 1 && n % 100 !== 11) ? "год" : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? "года" : "лет";
+
+// Куда слать заявку: в отдельный чат TELEGRAM_CHAT_ID_JOBS, если он задан, иначе — в чат выбранного ресторана
+function jobChats(loc) {
+  const own = (process.env.TELEGRAM_CHAT_ID_JOBS || "").split(",").map(s => s.trim()).filter(Boolean);
+  return own.length ? own : chatsFor({ point: { id: loc.id } });
+}
+
+async function handleJob(req, res) {
+  const ip = (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || req.socket.remoteAddress;
+  if (rateLimited("job:" + ip)) return send(res, 429, { ok: false, error: "Слишком много заявок подряд. Позвоните нам, пожалуйста" });
+
+  let input;
+  try { input = JSON.parse(await readBody(req)); } catch { return send(res, 400, { ok: false, error: "Некорректный запрос" }); }
+
+  const menu = loadMenu();
+  const positions = (menu.cfg.jobs && menu.cfg.jobs.positions) || [];
+  const name = clip(input.name, 60);
+  const phone = String(input.phone || "").replace(/\D/g, "");
+  const position = clip(input.position, 60);
+  const loc = (menu.cfg.locations || []).find(l => l.id === input.point);
+  const ageRaw = clip(input.age, 3);
+  const age = ageRaw ? Math.floor(Number(ageRaw)) : null;
+  const about = clip(input.about, 1000);
+  const errors = [];
+  if (name.length < 2) errors.push("name");
+  if (phone.length !== 11) errors.push("phone");
+  if (!position || (positions.length && !positions.includes(position))) errors.push("position");
+  if (!loc) errors.push("point");
+  if (ageRaw && !(age >= 14 && age <= 75)) errors.push("age");
+  if (input.consent !== true) errors.push("consent");
+  if (errors.length) return send(res, 422, { ok: false, error: "Проверьте данные заявки", fields: errors });
+
+  const chats = jobChats(loc);
+  if (!BOT_TOKEN || !chats.length) {
+    console.error("Заявка на работу не отправлена: не настроен Telegram");
+    return send(res, 503, { ok: false, error: "Приём заявок временно не работает" });
+  }
+  const text = [
+    "📝 <b>Заявка на работу</b>",
+    `💼 ${esc(position)} · ${esc(loc.name || loc.id)}`,
+    "",
+    `👤 ${esc(name)}${age ? `, ${age} ${yearsWord(age)}` : ""}`,
+    `📞 <a href="tel:+${phone}">+${phone}</a>`,
+    ...(about ? [`💬 ${esc(about)}`] : [])
+  ].join("\n");
+  try {
+    await Promise.all(chats.map(chat_id => sendToChat(chat_id, text)));
+    console.log(`Заявка на работу: ${position}, ${loc.name || loc.id}`); // без имени и телефона в логах
+    send(res, 200, { ok: true });
+  } catch (e) {
+    console.error(e.message);
+    send(res, 502, { ok: false, error: "Не удалось передать заявку" });
+  }
+}
+
 /* ---------- Бот в группах ---------- */
 function pointsForChat(chatId) {
   const locs = loadMenu().cfg.locations || [];
@@ -324,6 +382,7 @@ if (process.argv[2] === "chat-id") {
 } else {
   http.createServer((req, res) => {
     if (req.method === "POST" && req.url === "/api/order") return handleOrder(req, res).catch(e => { console.error(e); send(res, 500, { ok: false, error: "Ошибка сервера" }); });
+    if (req.method === "POST" && req.url === "/api/job") return handleJob(req, res).catch(e => { console.error(e); send(res, 500, { ok: false, error: "Ошибка сервера" }); });
     if (req.method === "POST" && req.url === "/api/tg") return handleTelegram(req, res).catch(e => { console.error(e); try { send(res, 500, { ok: false }); } catch {} });
     if (req.method === "GET" || req.method === "HEAD") return serveStatic(req, res);
     send(res, 405, "Method not allowed", "text/plain");

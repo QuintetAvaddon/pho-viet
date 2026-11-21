@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Работа в Phở Việt — заявка на вакансию</title>
+  <meta name="description" content="Работа в ресторанах вьетнамской кухни Phở Việt в Москве. Оставьте заявку — менеджер ресторана перезвонит.">
+  <meta name="theme-color" content="#110909">
+  <link rel="icon" href="/icons/favicon-48.png" sizes="48x48">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=27">
+</head>
+<body class="legal-page jobs-page">
+  <header class="legal-head">
+    <a href="/"><img src="/icons/icon-192.png" alt="" width="44" height="44">Phở Việt</a>
+    <a class="legal-back" href="/menu">← К меню</a>
+  </header>
+
+  <main class="legal jobs">
+    <h1>Работа в Phở Việt</h1>
+    <p class="jobs-lead">У нас 5 ресторанов вьетнамской кухни в Москве. Оставьте заявку — менеджер выбранного ресторана позвонит вам и расскажет об условиях.</p>
+
+    <form class="job-form" id="jobForm" novalidate>
+      <div class="field">
+        <label for="jName">Имя</label>
+        <input id="jName" name="name" autocomplete="name" required>
+        <p class="err" id="jName-err"></p>
+      </div>
+      <div class="field">
+        <label for="jPhone">Телефон</label>
+        <input id="jPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" required>
+        <p class="err" id="jPhone-err"></p>
+      </div>
+      <div class="job-row">
+        <div class="field">
+          <label for="jPosition">Должность</label>
+          <select id="jPosition" name="position" required></select>
+          <p class="err" id="jPosition-err"></p>
+        </div>
+        <div class="field">
+          <label for="jAge">Возраст</label>
+          <input id="jAge" name="age" inputmode="numeric" maxlength="2" autocomplete="off">
+          <p class="err" id="jAge-err"></p>
+        </div>
+      </div>
+      <div class="field">
+        <label for="jPoint">Ресторан</label>
+        <select id="jPoint" name="point" required></select>
+        <p class="field-hint">Выберите тот, где вам удобнее работать</p>
+        <p class="err" id="jPoint-err"></p>
+      </div>
+      <div class="field">
+        <label for="jAbout">Опыт и пожелания</label>
+        <textarea id="jAbout" name="about" rows="4" maxlength="1000" placeholder="Где работали, какой график удобен, когда можете выйти"></textarea>
+      </div>
+
+      <label class="consent"><input type="checkbox" id="jConsent"> <span>Даю <a href="/consent-job" target="_blank" rel="noopener">согласие на обработку персональных данных соискателя</a></span></label>
+      <p class="err" id="jConsent-err"></p>
+
+      <button type="submit" class="btn btn-primary btn-lg btn-block" id="jSubmit">Отправить заявку</button>
+      <p class="err submit-err" id="jSubmitErr" role="alert"></p>
+    </form>
+
+    <div class="job-success" id="jobSuccess" hidden>
+      <h2 tabindex="-1" id="jobSuccessTitle">Заявка отправлена</h2>
+      <p id="jobSuccessText"></p>
+      <a class="btn btn-glass btn-lg" href="/">На главную</a>
+    </div>
+  </main>
+
+  <script src="menu.js?v=27"></script>
+  <script src="jobs.js?v=27"></script>
+</body>
+</html>
