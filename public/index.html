@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=27">
+  <link rel="stylesheet" href="styles.css?v=28">
   <script>
     // При обновлении всегда начинаем с главного экрана, а не с места прошлой прокрутки
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -336,7 +336,10 @@
         <div class="asm-progress" aria-hidden="true"><span id="asmBar"></span></div>
       </div>
 
-      <svg class="asm-scene" id="asmScene" viewBox="0 0 900 760" role="img" aria-label="Чаша Фо Бо на бамбуковом подносе">
+      <div class="asm-scene" id="asmScene" role="img" aria-label="Чаша Фо Бо на бамбуковом подносе">
+        <!-- Сцена из слоёв одного размера: чаша, поднос и тень двигаются целиком на видеокарте,
+             не перерисовывая остальную картинку. Общие градиенты и фигуры — в defs первого слоя. -->
+        <svg class="asm-l asm-l-back" viewBox="0 0 900 760" aria-hidden="true">
         <defs>
           <linearGradient id="bwBody" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0" stop-color="#b9ab90"/><stop offset=".22" stop-color="#efe6d2"/><stop offset=".5" stop-color="#fbf6ea"/><stop offset=".8" stop-color="#e6dbc4"/><stop offset="1" stop-color="#a9997c"/>
@@ -374,6 +377,8 @@
         <!-- мягкий свет под чашей -->
         <ellipse class="asm-light" cx="450" cy="560" rx="400" ry="135" fill="url(#softAmber)" opacity=".2"/>
 
+        </svg>
+        <svg class="asm-l asm-l-tray" viewBox="0 0 900 760" aria-hidden="true">
         <!-- ПОДНОС -->
         <g class="asm-tray" id="asmTray">
           <ellipse cx="450" cy="588" rx="450" ry="165" fill="url(#softShadow)" opacity=".5"/>
@@ -520,9 +525,13 @@
           </g>
         </g>
 
+        </svg>
+        <svg class="asm-l asm-l-shadow" viewBox="0 0 900 760" aria-hidden="true">
         <!-- тень чаши на столе (растёт, пока чаша падает) -->
         <ellipse class="asm-ground-shadow" cx="450" cy="548" rx="185" ry="34" fill="url(#softShadow)" opacity=".65"/>
 
+        </svg>
+        <svg class="asm-l asm-l-bowl" viewBox="0 0 900 760" aria-hidden="true">
         <!-- ЧАША -->
         <g class="asm-bowl" id="asmBowl">
           <ellipse cx="450" cy="538" rx="92" ry="20" fill="#cbbd9f"/>
@@ -632,6 +641,8 @@
           <path d="M260 268c60-34 300-40 380-6" stroke="#fff" stroke-width="4" fill="none" opacity=".6" stroke-linecap="round"/>
         </g>
 
+        </svg>
+        <svg class="asm-l asm-l-fx" viewBox="0 0 900 760" aria-hidden="true">
         <!-- пар -->
         <g class="asm-steam" aria-hidden="true">
           <path class="st st1" d="M400 250c-20-40 20-60 0-110" stroke="url(#steamG)" stroke-width="16" fill="none" stroke-linecap="round"/>
@@ -667,7 +678,8 @@
         <g class="fly fly-anise" transform="translate(770 140)"><g>
           <path d="M0-26 6-8 24-14 10 0 24 14 6 8 0 26-6 8-24 14-10 0-24-14-6-8z" fill="#7a3b1c" stroke="#4a210e" stroke-width="2"/><circle r="5" fill="#b8692e"/>
         </g></g>
-      </svg>
+        </svg>
+      </div>
     </div>
   </section>
 
@@ -975,10 +987,10 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
-<script src="hours.js?v=27"></script>
-<script src="menu.js?v=27"></script>
-<script src="app.js?v=27"></script>
-<script src="pwa.js?v=27" defer></script>
-<script src="fx.js?v=27" defer></script>
+<script src="hours.js?v=28"></script>
+<script src="menu.js?v=28"></script>
+<script src="app.js?v=28"></script>
+<script src="pwa.js?v=28" defer></script>
+<script src="fx.js?v=28" defer></script>
 </body>
 </html>

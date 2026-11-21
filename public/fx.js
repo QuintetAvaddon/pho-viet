@@ -8,17 +8,22 @@
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const finePointer = matchMedia("(hover: hover) and (pointer: fine)").matches;
   const isMobile = () => innerWidth <= 720;
-  // Режимы: full — компьютер с мышью; touch — телефоны и планшеты (без тяжёлых эффектов);
-  // lite — Android и слабые устройства (ещё легче: сборка фо без закрепления). Проверка: ?fx=full|touch|lite
+  // Режимы: full — компьютер с мышью; touch — телефоны и планшеты. Анимации те же, но на телефоне
+  // при прокрутке двигаются только готовые слои на видеокарте, ничего не перерисовывается. Проверка: ?fx=full|touch
   const q = new URLSearchParams(location.search).get("fx");
-  const forced = ["full", "touch", "lite"].includes(q) ? q : null;
-  const touch = forced ? forced !== "full" : !finePointer;
-  const weak = /Android/i.test(navigator.userAgent) || (navigator.deviceMemory > 0 && navigator.deviceMemory <= 4);
-  const lite = forced ? forced === "lite" : touch && weak;
+  const touch = q === "full" ? false : q === "touch" ? true : !finePointer;
   root.classList.add(touch ? "fx-touch" : "fx-full");
-  if (lite) root.classList.add("fx-lite");
-  // телефон (сенсорный экран до 720px): первый экран без закрепления и разворота сцены
-  const staticHero = touch && matchMedia("(max-width: 720px)").matches;
+
+  // Слои первого экрана и сборки фо отдаём видеокарте, только пока секция рядом с экраном (экономим память)
+  const watch = (sel, on, off) => {
+    const el = $(sel); if (!el) return;
+    new IntersectionObserver(([e]) => {
+      root.classList.toggle(on, e.isIntersecting);
+      if (off) root.classList.toggle(off, !e.isIntersecting);
+    }, { rootMargin: "300px 0px" }).observe(el);
+  };
+  watch("#hero", "hero-on", "hero-off");
+  watch("#assemble", "asm-on");
 
   const hideLoader = () => {
     const l = $("#loader"); if (!l) return;
@@ -118,8 +123,27 @@
     }).observe(c);
   }
 
+  /* ---------- Лепестки и угольки на телефоне: CSS-анимации на видеокарте вместо холста ---------- */
+  function cssPetals() {
+    const scene = $("#scene"); if (!scene || reduced || !touch) return;
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    const colors = ["#c9544c", "#c9544c", "#f1dccd", "#c9544c", "#b5d17a"];
+    let h = "";
+    for (let i = 0; i < 12; i++) {
+      h += `<i style="--x:${rnd(-5, 95).toFixed(1)}vw;--dx:${rnd(8, 30).toFixed(1)}vw;--d:${rnd(9, 16).toFixed(1)}s;--dl:${(-rnd(0, 16)).toFixed(1)}s;--s:${rnd(0.7, 1.4).toFixed(2)};--r:${Math.round(rnd(180, 540)) * (i % 2 ? -1 : 1)}deg;--c:${colors[i % colors.length]}"><b></b></i>`;
+    }
+    for (let i = 0; i < 6; i++) {
+      h += `<u style="--x:${rnd(5, 95).toFixed(1)}vw;--dx:${rnd(-6, 6).toFixed(1)}vw;--d:${rnd(6, 11).toFixed(1)}s;--dl:${(-rnd(0, 11)).toFixed(1)}s"></u>`;
+    }
+    const box = document.createElement("div");
+    box.className = "layer petals"; box.setAttribute("aria-hidden", "true"); box.innerHTML = h;
+    const canvas = $("#particles");
+    if (canvas) canvas.replaceWith(box); else scene.append(box);
+  }
+
   stars();
   particles();
+  cssPetals();
 
   // Без GSAP или при reduced motion — показываем статичную версию
   if (reduced || !window.gsap || !window.ScrollTrigger) {
@@ -171,39 +195,34 @@
   const letters = $$(".gl");
   gsap.set(letters, { y: () => innerHeight * 0.7, opacity: 0 });
   gsap.set(".moon", { scale: 0.6, opacity: 0 });
-  if (!lite) gsap.set([".karst-far", ".karst-near", ".town", ".front"], { opacity: 0 }); // на слабых фон виден сразу
+  gsap.set([".karst-far", ".karst-near", ".town", ".front"], { opacity: 0 });
   gsap.set(".lantern", { y: -200 });
   gsap.set(".hero-ui > :not(.hero-copy)", { opacity: 0 });
-  if (staticHero) gsap.set("#heroCopy", { opacity: 0, y: 30 });
 
   const intro = () => {
     hideLoader();
-    // на телефоне слои сцены отдаются видеокарте только на время интро, потом освобождаем память
-    if (touch) root.classList.add("intro-running");
-    const tl = gsap.timeline({ defaults: { ease: "expo.out" }, onComplete: () => root.classList.remove("intro-running") });
-    tl.to(".moon", { scale: 1, opacity: 1, duration: lite ? 1.4 : 2.2 }, 0.1);
-    if (!lite) {
-      tl.to(".karst-far", { opacity: 1, duration: 1.6 }, 0.3)
-        .to(".karst-near", { opacity: 1, duration: 1.6 }, 0.45)
-        .to(".town", { opacity: 1, duration: 1.6 }, 0.6)
-        .to(".front", { opacity: 1, duration: 1.4 }, 0.9);
-    }
-    tl.to(letters, { y: 0, opacity: 1, duration: lite ? 1.1 : 1.6, stagger: 0.12 }, lite ? 0.3 : 0.7)
-      .to(".lantern", { y: 0, duration: lite ? 1.2 : 2, ease: lite ? "power3.out" : "elastic.out(1, 0.5)", stagger: 0.12 }, lite ? 0.5 : 1)
-      .to(".hero-ui > :not(.hero-copy)", { opacity: 1, duration: 1, stagger: 0.08 }, lite ? 0.8 : 1.3);
-    // на телефоне первый экран не закреплён: текст и кнопка «Открыть меню» появляются сразу после интро
-    if (staticHero) tl.to("#heroCopy", { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, lite ? 1.1 : 1.6);
+    const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
+    tl.to(".moon", { scale: 1, opacity: 1, duration: 2.2 }, 0.1)
+      .to(".karst-far", { opacity: 1, duration: 1.6 }, 0.3)
+      .to(".karst-near", { opacity: 1, duration: 1.6 }, 0.45)
+      .to(".town", { opacity: 1, duration: 1.6 }, 0.6)
+      .to(letters, { y: 0, opacity: 1, duration: 1.6, stagger: 0.12 }, 0.7)
+      .to(".front", { opacity: 1, duration: 1.4 }, 0.9)
+      .to(".lantern", { y: 0, duration: 2, ease: "elastic.out(1, 0.5)", stagger: 0.12 }, 1)
+      .to(".hero-ui > :not(.hero-copy)", { opacity: 1, duration: 1, stagger: 0.08 }, 1.3);
   };
   const ready = document.fonts ? document.fonts.ready : Promise.resolve();
   Promise.race([ready, new Promise(r => setTimeout(r, 2500))]).then(() => setTimeout(intro, 350));
 
   /* ---------- Hero: прокрутка разворачивает сцену ---------- */
   const mm = gsap.matchMedia();
-  // На телефонах первый экран обычный: прокрутка не двигает 9 полноэкранных слоёв — это и тормозило
-  if (!staticHero) mm.add({ desktop: "(min-width: 721px)", mobile: "(max-width: 720px)" }, ctx => {
+  mm.add({ desktop: "(min-width: 721px)", mobile: "(max-width: 720px)" }, ctx => {
     const { desktop } = ctx.conditions;
+    // на телефоне слои луны и фонарей короче экрана (styles.css) — сдвиги пересчитаны под их высоту,
+    // а сглаживание прокрутки короче, чтобы сцена шла за пальцем без запаздывания
+    const short = touch && !desktop;
     const tl = gsap.timeline({
-      scrollTrigger: { trigger: "#hero", start: "top top", end: desktop ? "+=150%" : "+=90%", scrub: 1, pin: true, anticipatePin: 1 }
+      scrollTrigger: { trigger: "#hero", start: "top top", end: desktop ? "+=150%" : "+=90%", scrub: touch ? 0.35 : 1, pin: true, anticipatePin: 1 }
     });
     tl.to(letters[0], { xPercent: desktop ? -70 : -40, rotation: -8, ease: "none", duration: 1 }, 0)
       .to(letters[2], { xPercent: desktop ? 70 : 40, rotation: 8, ease: "none", duration: 1 }, 0)
@@ -211,12 +230,12 @@
       .to(".giant-inner", { scale: desktop ? 1.18 : 1.05, ease: "none", duration: 1 }, 0)
       .to(".giant-inner", { opacity: 0, ease: "power1.in", duration: 0.4 }, 0)
       .fromTo(".hero-ui .chapter-label", { opacity: 1, y: 0 }, { opacity: 0, y: -20, ease: "none", duration: 0.2, immediateRender: false }, 0)
-      .to(".moon-wrap", { yPercent: -10, scale: 1.25, ease: "none", duration: 1 }, 0)
+      .to(".moon-wrap", short ? { yPercent: -18, scale: 1.25, transformOrigin: "50% 91%", ease: "none", duration: 1 } : { yPercent: -10, scale: 1.25, ease: "none", duration: 1 }, 0)
       .to(".karst-far", { yPercent: -3, ease: "none", duration: 1 }, 0)
       .to(".karst-near", { yPercent: -6, ease: "none", duration: 1 }, 0)
       .to(".town", { yPercent: -9, ease: "none", duration: 1 }, 0)
       .to(".front", { yPercent: 8, scale: 1.12, ease: "none", duration: 1 }, 0)
-      .to(".lanterns", { yPercent: -18, ease: "none", duration: 1 }, 0)
+      .to(".lanterns", { yPercent: short ? -60 : -18, ease: "none", duration: 1 }, 0)
       .fromTo(".scroll-hint", { opacity: 1 }, { opacity: 0, duration: 0.15, immediateRender: false }, 0)
       .fromTo("#heroCopy", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0.4);
     return () => {};
@@ -238,32 +257,32 @@
         if (bar) bar.style.transform = `scaleX(${p.toFixed(4)})`;
       };
       const BOWL = { x: 450, y: 300 };
-      // Компьютер и iPhone: сборка идёт по прокрутке (секция закреплена).
-      // Android и слабые: без закрепления — сборка проигрывается сама, когда секция появляется на экране.
-      const tl = gsap.timeline(lite
-        ? { paused: true, defaults: { ease: "power2.out" }, onUpdate() { setStep(this.progress()); } }
-        : {
-            defaults: { ease: "power2.out" },
-            scrollTrigger: {
-              trigger: "#assemble", start: "top top", end: desktop ? "+=420%" : "+=240%",
-              scrub: touch ? 0.5 : 1, pin: true, anticipatePin: 1, onUpdate: self => setStep(self.progress)
-            }
-          });
+      const tl = gsap.timeline({
+        defaults: { ease: "power2.out" },
+        scrollTrigger: {
+          trigger: "#assemble", start: "top top", end: desktop ? "+=420%" : "+=240%",
+          scrub: touch ? 0.35 : 1, pin: true, anticipatePin: 1, onUpdate: self => setStep(self.progress)
+        }
+      });
+      // Чаша, поднос и тень — отдельные слои сцены (у всех viewBox 900×760): двигаем слой целиком, без перерисовки.
+      // Сдвиги в процентах высоты сцены: 1 единица рисунка = 100/760 %; дно чаши (450, 548) = точка «50% 72.1%».
+      const U = 100 / 760, BOWL_ORIGIN = "50% 72.1%";
       const fly = (sel, at) => {
         tl.fromTo(sel, { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.7)" }, at)
           .to(sel, { x: BOWL.x, y: BOWL.y, scale: 0.25, rotation: "+=120", opacity: 0, duration: 0.9, ease: "power2.in" }, at + 0.6);
       };
       const bump = at => tl
-        .to("#asmBowl", { scaleX: 1.035, scaleY: 0.965, transformOrigin: "50% 100%", duration: 0.12, ease: "power1.out" }, at)
-        .to("#asmBowl", { scaleX: 1, scaleY: 1, duration: 0.45, ease: "elastic.out(1, 0.35)" }, at + 0.12);
+        .to(".asm-l-bowl", { scaleX: 1.035, scaleY: 0.965, transformOrigin: BOWL_ORIGIN, duration: 0.12, ease: "power1.out" }, at)
+        .to(".asm-l-bowl", { scaleX: 1, scaleY: 1, duration: 0.45, ease: "elastic.out(1, 0.35)" }, at + 0.12);
       const pour = $(".asm-pour");
       const pourLen = pour ? pour.getTotalLength() : 200;
 
       // вступление: пустая чаша падает сверху, вращаясь, отскакивает и встаёт по центру
-      tl.fromTo("#asmBowl", { y: desktop ? -820 : -420 }, { y: 0, duration: 1.4, ease: "bounce.out" }, 0)
-        .fromTo("#asmBowl", { opacity: desktop ? 1 : 0 }, { opacity: 1, duration: 0.35, ease: "none" }, 0)
-        .fromTo("#asmBowl", { rotation: -38, scale: 0.86, transformOrigin: "50% 100%" }, { rotation: 0, scale: 1, duration: 1.6, ease: "elastic.out(1, 0.45)" }, 0)
-        .fromTo(".asm-ground-shadow", { scale: 0.12, opacity: 0, transformOrigin: "50% 50%" }, { scale: 1, opacity: 0.5, duration: 1.4, ease: "bounce.out" }, 0)
+      tl.fromTo(".asm-l-bowl", { yPercent: (desktop ? -820 : -420) * U }, { yPercent: 0, duration: 1.4, ease: "bounce.out" }, 0)
+        .fromTo(".asm-l-bowl", { opacity: desktop ? 1 : 0 }, { opacity: 1, duration: 0.35, ease: "none" }, 0)
+        .fromTo(".asm-l-bowl", { rotation: -38, scale: 0.86, transformOrigin: BOWL_ORIGIN }, { rotation: 0, scale: 1, duration: 1.6, ease: "elastic.out(1, 0.45)" }, 0)
+        // у самой тени прозрачность .65, поэтому слою 0.77 — вместе как прежние 0.5
+        .fromTo(".asm-l-shadow", { scale: 0.12, opacity: 0, transformOrigin: BOWL_ORIGIN }, { scale: 1, opacity: 0.77, duration: 1.4, ease: "bounce.out" }, 0)
         .from(".asm-broth-top", { opacity: 0, duration: 0.01 }, 0);
       // 01 — лапша
       fly(".fly-noodle", 1.5);
@@ -297,15 +316,14 @@
         .to(".asm-steam", { scale: 1, duration: 0.8 }, 10.4);
       bump(9.1);
       // 05 — подача на бамбуковом подносе
-      tl.from("#asmTray", { y: 340, opacity: 0, duration: 1.3, ease: "power3.out" }, 10.2)
-        .to("#asmBowl", { y: 14, duration: 0.6, ease: "power2.inOut" }, 11.1)
-        .to(".asm-ground-shadow", { y: 14, duration: 0.6, ease: "power2.inOut" }, 11.1)
+      tl.from(".asm-l-tray", { yPercent: 340 * U, opacity: 0, duration: 1.3, ease: "power3.out" }, 10.2)
+        .to(".asm-l-bowl", { yPercent: 14 * U, duration: 0.6, ease: "power2.inOut" }, 11.1)
+        .to(".asm-l-shadow", { yPercent: 14 * U, duration: 0.6, ease: "power2.inOut" }, 11.1)
         .from(".asm-garnish > *", { y: 40, opacity: 0, scale: 0.6, transformOrigin: "50% 100%", duration: 0.7, stagger: 0.04, ease: "back.out(1.6)" }, 10.9)
         .from(".asm-side > :not(.asm-garnish)", { y: 50, opacity: 0, duration: 0.8, stagger: 0.08 }, 11.0)
         .to(".asm-scene", { scale: desktop ? 0.94 : 0.97, duration: 0.8, ease: "none" }, 12.2)
         .to({}, { duration: 0.6 }, 13.0);
       setStep(0);
-      if (lite) ScrollTrigger.create({ trigger: "#assemble", start: "top 60%", once: true, onEnter: () => tl.timeScale(2).play() });
       return () => {};
     });
   }
@@ -323,10 +341,8 @@
   gsap.fromTo(".panel", { opacity: 0, y: 60 }, { opacity: 1, y: 0, stagger: 0.1, duration: 1.1, ease: "expo.out", clearProps: "transform,opacity", scrollTrigger: { trigger: ".story", start: "top 75%" } });
 
   /* ---------- Бегущая строка ---------- */
-  if (!lite) {
-    gsap.fromTo("#marquee1", { xPercent: 0 }, { xPercent: -35, ease: "none", scrollTrigger: { trigger: ".marquee", start: "top bottom", end: "bottom top", scrub: 0.6 } });
-    gsap.fromTo("#marquee2", { xPercent: -35 }, { xPercent: 0, ease: "none", scrollTrigger: { trigger: ".marquee", start: "top bottom", end: "bottom top", scrub: 0.6 } });
-  }
+  gsap.fromTo("#marquee1", { xPercent: 0 }, { xPercent: -35, ease: "none", scrollTrigger: { trigger: ".marquee", start: "top bottom", end: "bottom top", scrub: 0.6 } });
+  gsap.fromTo("#marquee2", { xPercent: -35 }, { xPercent: 0, ease: "none", scrollTrigger: { trigger: ".marquee", start: "top bottom", end: "bottom top", scrub: 0.6 } });
 
   /* ---------- Заголовки и карточки ---------- */
   $$(".split").forEach(el => {
@@ -343,10 +359,8 @@
   });
   // fromTo с явной конечной точкой + очистка: у карточек есть CSS-переход transform для hover, from() мог запомнить промежуточный сдвиг
   gsap.fromTo(".info-card", { opacity: 0, y: 50 }, { opacity: 1, y: 0, stagger: 0.1, duration: 1, ease: "expo.out", clearProps: "transform,opacity", scrollTrigger: { trigger: ".info-grid", start: "top 85%" } });
-  if (!touch) {
-    gsap.from(".vertical-big", { yPercent: 30, opacity: 0, ease: "none", scrollTrigger: { trigger: ".finale", start: "top bottom", end: "center center", scrub: 1 } });
-    gsap.fromTo(".footer-giant", { yPercent: 40 }, { yPercent: 0, ease: "none", scrollTrigger: { trigger: ".site-footer", start: "top bottom", end: "bottom bottom", scrub: 1 } });
-  }
+  gsap.from(".vertical-big", { yPercent: 30, opacity: 0, ease: "none", scrollTrigger: { trigger: ".finale", start: "top bottom", end: "center center", scrub: 1 } });
+  gsap.fromTo(".footer-giant", { yPercent: 40 }, { yPercent: 0, ease: "none", scrollTrigger: { trigger: ".site-footer", start: "top bottom", end: "bottom bottom", scrub: 1 } });
 
   /* ---------- Финал: фонари зажигаются по одному ---------- */
   const fl = $$(".finale-lanterns span");
