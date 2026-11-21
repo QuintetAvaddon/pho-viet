@@ -25,8 +25,11 @@
     return { from, to };
   };
 
-  // Окно приёма заказов точки: { from, last }, где last — последняя минута, когда ещё можно заказать
+  // Окно приёма заказов точки: { from, last }; заказать можно до last (в саму минуту last — уже нельзя).
+  // Если у точки задано orderHours («10:00–21:30»), берём его; иначе — с открытия до закрытия минус cutoff.
   api.orderWindow = (loc, cutoff) => {
+    const o = api.parseHours(loc && loc.orderHours);
+    if (o) return { from: o.from, last: o.to };
     const h = api.parseHours(loc && loc.hours);
     return h ? { from: h.from, last: h.to - (cutoff || 0) } : null;
   };
