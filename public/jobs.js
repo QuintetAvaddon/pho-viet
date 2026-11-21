@@ -8,7 +8,16 @@
   const LOCS = Array.isArray(CFG.locations) ? CFG.locations : [];
   const POSITIONS = (CFG.jobs && CFG.jobs.positions) || [];
 
-  $("#jPosition").innerHTML = `<option value="">Выберите</option>` + POSITIONS.map(p => `<option>${esc(p)}</option>`).join("");
+  // Одна вакансия — показываем её как готовое поле, без выпадающего списка
+  if (POSITIONS.length === 1) {
+    const fixed = document.createElement("input");
+    fixed.id = "jPosition"; fixed.name = "position"; fixed.value = POSITIONS[0]; fixed.readOnly = true;
+    $("#jPosition").replaceWith(fixed);
+  } else {
+    $("#jPosition").innerHTML = `<option value="">Выберите</option>` + POSITIONS.map(p => `<option>${esc(p)}</option>`).join("");
+  }
+  const open = POSITIONS.filter(p => p !== "Другое").map(p => p.toLowerCase());
+  if (open.length) $("#jVacancies").textContent = (open.length === 1 ? "Открыта вакансия: " : "Открытые вакансии: ") + open.join(", ") + ".";
   $("#jPoint").innerHTML = `<option value="">Выберите ресторан</option>` +
     LOCS.map(l => `<option value="${esc(l.id)}">${esc(l.name || l.id)} — ${esc(l.address || "")}</option>`).join("");
 

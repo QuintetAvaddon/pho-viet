@@ -293,7 +293,7 @@
       bump(4.6);
       tl.from(".asm-beef use", { y: -160, x: i => (i % 2 ? 120 : -120), rotation: i => (i % 2 ? 40 : -40), opacity: 0, duration: 1.1, stagger: 0.12, ease: "power3.out" }, 4.2);
       // 03 — зелень
-      fly(".fly-basil", 5.5); fly(".fly-chili", 5.6); fly(".fly-cil", 5.8);
+      fly(".fly-basil", 5.5); fly(".fly-onion", 5.6); fly(".fly-cil", 5.8);
       bump(6.6);
       tl.from(".asm-greens > *", { y: -110, scale: 0, rotation: () => gsap.utils.random(-180, 180), opacity: 0, duration: 1, stagger: 0.025, ease: "back.out(1.4)" }, 6.2);
       // 04 — бульон: половник наливает кипящий бульон, он заваривает говядину, идёт пар

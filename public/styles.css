@@ -1045,6 +1045,7 @@ html.hero-off .petals i, html.hero-off .petals i b, html.hero-off .petals u { an
 .job-success h2 { margin: 0 0 8px; font-size: 24px; }
 .job-success p { margin: 0 0 18px; }
 .jobs-page .submit-err { margin-top: 10px; }
+.job-form input[readonly] { color: var(--fg); background: rgba(255, 255, 255, .02); cursor: default; }
 /* на странице вакансий текст .legal не должен перекрашивать ошибки и подсказки формы */
 .legal .err { color: var(--danger); }
 .legal .field-hint { color: var(--muted); }
