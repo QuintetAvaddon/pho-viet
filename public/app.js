@@ -158,7 +158,8 @@
         <div class="bar"><span style="width:${pct}%"></span></div>
       </div>
       ${totalsHtml(false)}
-      <button class="btn btn-primary btn-lg btn-block" id="toCheckout">Оформить заказ</button>`;
+      <button class="btn btn-primary btn-lg btn-block" id="toCheckout">Оформить заказ</button>
+      ${LOCS.length && !LOCS.some(accepting) ? `<p class="cart-closed">Сейчас заказы не принимаем. Принимаем ежедневно ${esc(orderHoursText())}.</p>` : ""}`;
   }
 
   function renderAll() {
@@ -256,26 +257,28 @@
   /* ---------- Checkout ---------- */
   const form = $("#checkoutForm");
 
+  // «Как можно скорее» и «Сегодня к …» — только в часы приёма выбранной точки (по Москве)
   function fillTimes() {
-    const sel = $("#fTime");
-    const opts = [`<option value="asap">Как можно скорее</option>`];
-    const now = new Date(); now.setMinutes(Math.ceil(now.getMinutes() / 30) * 30 + 60, 0, 0);
-    for (let i = 0; i < 16; i++) {
-      const t = new Date(now.getTime() + i * 30 * 60000);
-      if (t.getHours() >= 22 || t.getHours() < 10) continue;
-      const s = t.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-      opts.push(`<option value="${s}">Сегодня к ${s}</option>`);
+    const sel = $("#fTime"), prev = sel.value;
+    const loc = locById($("#fPoint")?.value) || LOCS.find(accepting) || LOCS[0];
+    const opts = [];
+    if (accepting(loc)) opts.push(`<option value="asap">Как можно скорее</option>`);
+    if (H && loc) for (const t of H.slots(loc, CUTOFF)) {
+      const s = H.fmt(t);
+      opts.push(`<option value="${s}">${t < 1440 ? "Сегодня к" : "К"} ${s}</option>`);
     }
-    sel.innerHTML = opts.join("");
+    sel.innerHTML = opts.join("") || `<option value="">Сейчас заказы не принимаем</option>`;
+    if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
   }
 
   function openCheckout() {
     if (!count()) return;
     $("#checkoutView").hidden = false; $("#successView").hidden = true;
-    fillTimes();
     fillPoints();
     const saved = JSON.parse(localStorage.getItem("phoviet_contact") || "{}");
     for (const k of ["name", "phone", "street", "flat", "entrance", "floor", "point"]) if (saved[k] && form[k] && !form[k].value) form[k].value = saved[k];
+    if (form.point && !accepting(locById(form.point.value))) form.point.value = "";
+    fillTimes();
     syncForm();
     openOverlay($("#checkoutOverlay"), "#fName");
   }
@@ -291,8 +294,23 @@
     $("#fPoint-hint").textContent = pickup ? "" : "Выберите ближайший к вам — так привезём быстрее";
     $("#changeField").hidden = form.payment.value !== "cash";
     $("#checkoutSummary").innerHTML = totalsHtml(pickup);
+    syncHours();
   }
-  form.addEventListener("change", e => { if (["method", "payment"].includes(e.target.name)) syncForm(); });
+  // Если сейчас ни одна точка не принимает заказы — показываем часы приёма и выключаем кнопку
+  function syncHours() {
+    const open = !LOCS.length || LOCS.some(accepting);
+    const note = $("#closedNote");
+    if (note) {
+      note.hidden = open;
+      note.innerHTML = open ? "" : `<b>Сейчас заказы не принимаем.</b> Принимаем ежедневно ${esc(orderHoursText())}.`;
+    }
+    $("#submitBtn").disabled = !open;
+    return open;
+  }
+  form.addEventListener("change", e => {
+    if (["method", "payment"].includes(e.target.name)) syncForm();
+    if (e.target.name === "point") { fillTimes(); validateField("fPoint"); }
+  });
 
   // Маска телефона +7 (XXX) XXX-XX-XX
   $("#fPhone").addEventListener("input", e => {
@@ -314,7 +332,12 @@
     fName: v => v.trim().length >= 2 || "Укажите имя",
     fPhone: v => v.replace(/\D/g, "").length === 11 || "Введите телефон полностью: +7 и 10 цифр",
     fStreet: v => isPickup() || v.trim().length >= 5 || "Укажите улицу и номер дома",
-    fPoint: v => !LOCS.length || !!locById(v) || (isPickup() ? "Выберите ресторан, где заберёте заказ" : "Выберите ресторан, из которого доставить")
+    fPoint: v => {
+      if (!LOCS.length) return true;
+      const l = locById(v);
+      if (!l) return isPickup() ? "Выберите ресторан, где заберёте заказ" : "Выберите ресторан, из которого доставить";
+      return accepting(l) || `Этот ресторан принимает заказы с ${orderFrom(l)} до ${orderTill(l)}`;
+    }
   };
   function validateField(id) {
     const el = $("#" + id), res = rules[id](el.value);
@@ -333,6 +356,7 @@
     $("#fConsent-err").textContent = consent ? "" : "Нужно согласие, чтобы мы могли связаться с вами по заказу";
     if (bad.length) { $("#" + bad[0]).focus(); return; }
     if (!consent) { $("#fConsent").focus(); return; }
+    if (!syncHours()) return;
 
     const pickup = isPickup(), sub = subtotal(), fee = deliveryFee(sub, pickup);
     const fd = Object.fromEntries(new FormData(form));
@@ -344,6 +368,7 @@
       address: pickup ? null : { street: fd.street, flat: fd.flat, entrance: fd.entrance, floor: fd.floor },
       point: fd.point || null,
       time: fd.time, payment: fd.payment, change: fd.change || null, comment: fd.comment || "",
+      consent: true,
       items: Object.entries(cart).map(([id, q]) => ({ id, name: BY_ID[id].name, price: BY_ID[id].price, qty: q })),
       subtotal: sub, delivery: fee, total: sub + fee
     };
@@ -355,7 +380,7 @@
       if (CFG.orderEndpoint) {
         const r = await fetch(CFG.orderEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(order) });
         const res = await r.json().catch(() => ({}));
-        if (!r.ok || !res.ok) throw new Error(res.error || "HTTP " + r.status);
+        if (!r.ok || !res.ok) throw Object.assign(new Error(res.error || "HTTP " + r.status), { code: res.code });
         order.id = res.id; order.total = res.total;
       }
       const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || "[]");
@@ -370,9 +395,16 @@
       $("#successTitle").focus();
       form.reset();
     } catch (err) {
-      showSubmitError(`${err.message.startsWith("HTTP") || err.name === "TypeError" ? "Не удалось отправить заказ" : err.message}. Попробуйте ещё раз или позвоните нам: ${CFG.phone}`);
+      if (err.code === "closed" || err.code === "time") {
+        // точка закрылась, пока гость оформлял, или время устарело — обновляем список и показываем причину
+        fillPoints(); fillTimes(); syncForm();
+        showSubmitError(err.message);
+      } else {
+        showSubmitError(`${err.message.startsWith("HTTP") || err.name === "TypeError" ? "Не удалось отправить заказ" : err.message}. Попробуйте ещё раз или позвоните нам: ${CFG.phone}`);
+      }
     } finally {
-      btn.disabled = false; btn.textContent = "Подтвердить заказ";
+      btn.textContent = "Подтвердить заказ";
+      syncHours();
     }
   });
 
@@ -394,6 +426,29 @@
   const locById = id => LOCS.find(l => l.id === id);
   const locName = l => l.name || l.metro || "";
   const mapUrl = l => "https://yandex.ru/maps/?text=" + encodeURIComponent(/москва/i.test(l.address || "") ? l.address : "Москва, " + (l.address || ""));
+  // Приём заказов: с открытия до закрытия минус CFG.orderCutoffMin (логика в hours.js, та же на сервере)
+  const H = window.PV_HOURS;
+  const CUTOFF = CFG.orderCutoffMin ?? 30;
+  const accepting = l => !H || !l || H.acceptsNow(l, CUTOFF);
+  const orderFrom = l => { const w = H && l && H.orderWindow(l, CUTOFF); return w ? H.fmt(w.from) : ""; };
+  const orderTill = l => { const w = H && l && H.orderWindow(l, CUTOFF); return w ? H.fmt(w.last) : ""; };
+  // «с 10:00 до 21:30, м. Китай-город — до 23:30»
+  function orderHoursText() {
+    const groups = new Map();
+    for (const l of LOCS) {
+      if (!orderFrom(l)) continue;
+      const k = orderFrom(l) + "|" + orderTill(l);
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(l);
+    }
+    const [main, ...rest] = [...groups].sort((a, b) => b[1].length - a[1].length);
+    if (!main) return "";
+    const [mf, mt] = main[0].split("|");
+    return `с ${mf} до ${mt}` + rest.map(([k, ls]) => {
+      const [f, t] = k.split("|");
+      return `, ${ls.map(locName).join(", ")} — ${f === mf ? "" : `с ${f} `}до ${t}`;
+    }).join("");
+  }
   // «Открыто до 22:00» / «Откроется в 10:00» — по московскому времени
   function openState(hours) {
     const m = String(hours || "").match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})/);
@@ -417,7 +472,7 @@
           ${st ? `<span class="loc-status${st.open ? "" : " closed"}">${st.text}</span>` : ""}
           <h4>${esc(locName(l))}</h4>
           <p class="loc-address">${esc(l.address)}</p>
-          ${l.hours ? `<p class="loc-hours"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>${esc(l.hours)}</p>` : ""}
+          ${l.hours ? `<p class="loc-hours"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>${esc(l.hours)}${orderTill(l) ? ` · заказы до ${orderTill(l)}` : ""}</p>` : ""}
           <div class="loc-actions">
             ${tel ? `<a class="loc-btn" href="tel:${tel}"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg>Позвонить</a>` : ""}
             <a class="loc-btn" href="${mapUrl(l)}" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg>Маршрут</a>
@@ -426,10 +481,16 @@
       }).join("");
     });
   }
+  // Список ресторанов в оформлении; точки, которые сейчас не принимают заказы, недоступны
   function fillPoints() {
     const sel = $("#fPoint");
-    if (!sel || sel.options.length) return;
-    sel.innerHTML = `<option value="">Выберите ресторан</option>` + LOCS.map(l => `<option value="${esc(l.id)}">${esc(locName(l))} — ${esc(l.address)}</option>`).join("");
+    if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = `<option value="">Выберите ресторан</option>` + LOCS.map(l => {
+      const ok = accepting(l);
+      return `<option value="${esc(l.id)}"${ok ? "" : " disabled"}>${esc(locName(l))} — ${esc(l.address)}${ok ? "" : ` · заказы с ${orderFrom(l)}`}</option>`;
+    }).join("");
+    if (prev && accepting(locById(prev))) sel.value = prev;
   }
   renderLocations();
 

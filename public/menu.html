@@ -5,6 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Меню — Phở Việt, вьетнамская кухня</title>
   <meta name="description" content="Фо Бо, нем, бань бао и другие блюда вьетнамской кухни. Закажите онлайн — бесплатная доставка от 600 ₽.">
+  <link rel="canonical" href="https://pho-viet-site.onrender.com/menu">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Phở Việt">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:title" content="Меню — Phở Việt, вьетнамская кухня">
+  <meta property="og:description" content="Фо Бо, нем, бань бао и другие блюда вьетнамской кухни. 5 ресторанов в Москве, доставка и самовывоз, бесплатная доставка от 600 ₽.">
+  <meta property="og:url" content="https://pho-viet-site.onrender.com/menu">
+  <meta property="og:image" content="https://pho-viet-site.onrender.com/og.jpg?v=1">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Phở Việt — вьетнамская кухня с доставкой">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#110909">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/favicon-48.png" sizes="48x48">
@@ -16,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=24">
+  <link rel="stylesheet" href="styles.css?v=25">
 </head>
 <body class="page-menu">
 <script>document.documentElement.classList.add("page-menu")</script>
@@ -184,7 +196,7 @@
       <ul class="footer-locations js-locations" data-variant="compact"></ul>
     </div>
   </div>
-  <p class="container copyright">© <span id="year"></span> Phở Việt</p>
+  <p class="container copyright">© <span id="year"></span> Phở Việt · <a href="/privacy">Политика обработки персональных данных</a></p>
 </footer>
 
 <!-- Плавающая корзина на мобильных -->
@@ -234,6 +246,7 @@
     <div id="checkoutView">
       <h3 id="checkoutTitle">Оформление заказа</h3>
       <form id="checkoutForm" novalidate>
+        <div class="closed-note" id="closedNote" role="status" hidden></div>
         <div class="seg" role="radiogroup" aria-label="Способ получения">
           <label><input type="radio" name="method" value="delivery" checked><span>Доставка</span></label>
           <label><input type="radio" name="method" value="pickup"><span>Самовывоз</span></label>
@@ -295,10 +308,11 @@
 
         <div class="summary" id="checkoutSummary"></div>
 
-        <label class="consent"><input type="checkbox" id="fConsent" required> <span>Согласен на обработку персональных данных для выполнения заказа</span></label>
+        <label class="consent"><input type="checkbox" id="fConsent" required> <span>Даю <a href="/consent" target="_blank" rel="noopener">согласие на обработку персональных данных</a></span></label>
         <p class="err" id="fConsent-err"></p>
 
         <button type="submit" class="btn btn-primary btn-lg btn-block" id="submitBtn">Подтвердить заказ</button>
+        <p class="legal-note">Нажимая «Подтвердить заказ», вы соглашаетесь с <a href="/privacy" target="_blank" rel="noopener">политикой обработки персональных данных</a>.</p>
         <p class="err submit-err" id="submitErr" role="alert"></p>
       </form>
     </div>
@@ -333,8 +347,9 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="menu.js?v=24"></script>
-<script src="app.js?v=24"></script>
-<script src="pwa.js?v=24" defer></script>
+<script src="hours.js?v=25"></script>
+<script src="menu.js?v=25"></script>
+<script src="app.js?v=25"></script>
+<script src="pwa.js?v=25" defer></script>
 </body>
 </html>

@@ -45,6 +45,13 @@ function loadMenu() {
   return { cfg: w.SITE_CONFIG, byId: Object.fromEntries(w.MENU.map(d => [d.id, d])) };
 }
 
+/* ---------- Часы приёма заказов (тот же код, что на сайте: public/hours.js) ---------- */
+const HOURS = (() => {
+  const ctx = { window: {}, Date }; // часы процесса сервера, а не отдельной песочницы vm
+  vm.runInNewContext(fs.readFileSync(path.join(PUBLIC_DIR, "hours.js"), "utf8"), ctx);
+  return ctx.window.PV_HOURS;
+})();
+
 /* ---------- Telegram ---------- */
 async function tg(method, body) {
   const r = await fetch(`${TG_API}/bot${BOT_TOKEN}/${method}`, {
@@ -85,6 +92,7 @@ function buildOrder(input, menu) {
   const phoneDigits = String(input.customer?.phone || "").replace(/\D/g, "");
   if (name.length < 2) errors.push("name");
   if (phoneDigits.length !== 11) errors.push("phone");
+  if (input.consent !== true) errors.push("consent");
 
   const address = method === "delivery" ? {
     street: clip(input.address?.street, 150),
@@ -96,11 +104,18 @@ function buildOrder(input, menu) {
 
   // Ресторан (и для самовывоза, и для доставки) должен быть из списка в menu.js
   const locs = Array.isArray(menu.cfg.locations) ? menu.cfg.locations : [];
-  let point = null;
+  let point = null, closed = null;
   if (locs.length) {
     const l = locs.find(x => x.id === input.point);
     if (!l) errors.push("point");
-    else point = { id: l.id, name: l.name || l.metro || l.id, address: l.address || "" };
+    else {
+      point = { id: l.id, name: l.name || l.metro || l.id, address: l.address || "" };
+      // Заказы — только в часы приёма точки: с открытия до закрытия минус orderCutoffMin (по Москве)
+      const cutoff = menu.cfg.orderCutoffMin ?? 30;
+      const w = HOURS.orderWindow(l, cutoff);
+      if (!HOURS.acceptsNow(l, cutoff)) { errors.push("closed"); closed = w ? `с ${HOURS.fmt(w.from)} до ${HOURS.fmt(w.last)}` : ""; }
+      else if (!HOURS.validTime(l, cutoff, clip(input.time, 20) || "asap")) errors.push("time");
+    }
   }
 
   const items = [];
@@ -115,7 +130,7 @@ function buildOrder(input, menu) {
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
   const delivery = method === "pickup" || subtotal >= menu.cfg.freeDeliveryFrom ? 0 : menu.cfg.deliveryFee;
   return {
-    errors,
+    errors, closed,
     order: {
       id: String(Date.now()).slice(-6),
       method, name,
@@ -197,7 +212,11 @@ async function handleOrder(req, res) {
   let input;
   try { input = JSON.parse(await readBody(req)); } catch { return send(res, 400, { ok: false, error: "Некорректный запрос" }); }
 
-  const { errors, order } = buildOrder(input, loadMenu());
+  const { errors, closed, order } = buildOrder(input, loadMenu());
+  if (errors.includes("closed")) {
+    return send(res, 422, { ok: false, code: "closed", error: `Сейчас этот ресторан не принимает заказы${closed ? `. Приём заказов ${closed}` : ""}` });
+  }
+  if (errors.includes("time")) return send(res, 422, { ok: false, code: "time", error: "Выбранное время уже недоступно — выберите другое" });
   if (errors.length) return send(res, 422, { ok: false, error: "Проверьте данные заказа", fields: errors });
 
   const chats = chatsFor(order);
