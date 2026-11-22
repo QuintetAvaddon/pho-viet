@@ -23,15 +23,17 @@
   const splash = $("#splash");
   if (splash) {
     let gone = false;
+    // время считаем с момента, когда заставка появилась на экране (а не с начала загрузки страницы)
+    const t0 = window.__splashT0 ?? performance.now();
     const hide = () => {
       if (gone) return; gone = true;
       setTimeout(() => {
         splash.classList.add("done");
-        setTimeout(() => splash.remove(), 650);
-      }, Math.max(0, 1100 - performance.now())); // заставка видна не меньше ~1 секунды
+        setTimeout(() => splash.remove(), 700);
+      }, Math.max(0, t0 + 2300 - performance.now())); // анимация логотипа успевает пройти целиком
     };
     if (document.readyState === "complete") hide(); else addEventListener("load", hide, { once: true });
-    setTimeout(hide, 3200); // медленная сеть — не держим заставку дольше
+    setTimeout(hide, Math.max(0, t0 + 4200 - performance.now())); // медленная сеть — не держим заставку дольше
   }
 
   /* ---------- Часы работы и выбор ресторана ---------- */
@@ -143,7 +145,13 @@
     const cartCount = () => {
       try { return Object.values(JSON.parse(localStorage.getItem(CART_KEY)) || {}).reduce((a, b) => a + b, 0); } catch { return 0; }
     };
-    const syncBadge = () => { const n = cartCount(), b = $("#tabCount"); if (b) { b.textContent = n; b.hidden = !n; } };
+    let shown = cartCount();
+    const syncBadge = () => {
+      const n = cartCount(), b = $("#tabCount"); if (!b) return;
+      b.textContent = n; b.hidden = !n;
+      if (n > shown) { b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump"); } // добавили блюдо — бейдж «подпрыгивает»
+      shown = n;
+    };
     syncBadge();
     addEventListener("storage", syncBadge);
     document.addEventListener("cart:change", syncBadge);

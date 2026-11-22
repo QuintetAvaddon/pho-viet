@@ -402,6 +402,11 @@ if (process.argv[2] === "chat-id") {
     if (req.method === "POST" && req.url === "/api/order") return handleOrder(req, res).catch(e => { console.error(e); send(res, 500, { ok: false, error: "Ошибка сервера" }); });
     if (req.method === "POST" && req.url === "/api/job") return handleJob(req, res).catch(e => { console.error(e); send(res, 500, { ok: false, error: "Ошибка сервера" }); });
     if (req.method === "POST" && req.url === "/api/tg") return handleTelegram(req, res).catch(e => { console.error(e); try { send(res, 500, { ok: false }); } catch {} });
+    // раньше приложение запускалось с /menu?source=app — теперь стартовая страница приложения /app
+    if (req.method === "GET" && /^\/menu(\.html)?\?(.*&)?source=app(&|$)/.test(req.url)) {
+      res.writeHead(302, { Location: "/app?source=app", "Cache-Control": "no-store" });
+      return res.end();
+    }
     if (req.method === "GET" || req.method === "HEAD") return serveStatic(req, res);
     send(res, 405, "Method not allowed", "text/plain");
   }).listen(PORT, () => {

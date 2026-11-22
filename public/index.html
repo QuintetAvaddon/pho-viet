@@ -25,10 +25,22 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Phở Việt">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/icons/splash/launch-1320x2868.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/icons/splash/launch-1206x2622.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 420px) and (device-height: 912px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/icons/splash/launch-1260x2736.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/icons/splash/launch-1290x2796.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/icons/splash/launch-1179x2556.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/icons/splash/launch-1170x2532.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/icons/splash/launch-1284x2778.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/icons/splash/launch-1125x2436.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/icons/splash/launch-1242x2688.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/icons/splash/launch-828x1792.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/icons/splash/launch-1242x2208.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/icons/splash/launch-750x1334.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=31">
+  <link rel="stylesheet" href="styles.css?v=32">
   <script>
     // При обновлении всегда начинаем с главного экрана, а не с места прошлой прокрутки
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -172,6 +184,7 @@
 
 <main>
   <!-- ============ HERO: ночная сцена ============ -->
+  <div class="hero-track" id="heroTrack">
   <section class="hero" id="hero" aria-labelledby="heroTitle">
     <div class="scene" id="scene">
       <canvas class="layer stars" id="stars" aria-hidden="true"></canvas>
@@ -321,9 +334,11 @@
       <div class="scroll-hint" aria-hidden="true"><span></span>Листайте</div>
     </div>
   </section>
+  </div>
 
   <!-- ============ СБОРКА ЧАШИ ФО (по прокрутке) ============ -->
   <section class="assemble" id="assemble" aria-labelledby="asmTitle">
+    <div class="asm-sticky">
     <div class="asm-pin">
       <div class="asm-glow" aria-hidden="true"></div>
       <div class="asm-copy">
@@ -446,6 +461,11 @@
         <line x1="835" y1="529" x2="858" y2="527" stroke="#7a5228" stroke-width="3" opacity=".55"/>
         <line x1="843" y1="545" x2="865" y2="543" stroke="#7a5228" stroke-width="3" opacity=".55"/>
           <rect x="560" y="430" width="230" height="170" rx="6" fill="#e6dccb" opacity=".9" transform="rotate(-8 675 515)"/>
+        </g>
+
+        </svg>
+        <svg class="asm-l asm-l-side" viewBox="0 0 900 760" aria-hidden="true">
+        <!-- на подносе: палочки, гарнир, соусы — отдельный слой, их появление не перерисовывает плетёный поднос -->
           <g class="asm-side">
             <!-- палочки и ложка в упаковке -->
             <g><g transform="rotate(-14 705 545)">
@@ -526,17 +546,15 @@
             <g transform="translate(320 632)"><ellipse cy="22" rx="30" ry="9" fill="#000" opacity=".25"/><path d="M-28 0v18a28 9 0 0 0 56 0V0z" fill="#e05a3c" opacity=".9"/><ellipse rx="28" ry="9" fill="#f07a58"/><ellipse rx="30" ry="10" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2"/></g>
             <g transform="translate(398 646)"><ellipse cy="22" rx="30" ry="9" fill="#000" opacity=".25"/><path d="M-28 0v18a28 9 0 0 0 56 0V0z" fill="#f6efe2" opacity=".5"/><ellipse rx="28" ry="9" fill="#f7f1e6" opacity=".7"/><ellipse rx="30" ry="10" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="2"/></g>
           </g>
-        </g>
-
         </svg>
         <svg class="asm-l asm-l-shadow" viewBox="0 0 900 760" aria-hidden="true">
         <!-- тень чаши на столе (растёт, пока чаша падает) -->
         <ellipse class="asm-ground-shadow" cx="450" cy="548" rx="185" ry="34" fill="url(#softShadow)" opacity=".65"/>
 
         </svg>
-        <svg class="asm-l asm-l-bowl" viewBox="0 0 900 760" aria-hidden="true">
-        <!-- ЧАША -->
-        <g class="asm-bowl" id="asmBowl">
+        <div class="asm-l asm-l-bowl">
+        <!-- ЧАША: основа и начинка — отдельные слои одного размера; на телефоне каждый слой двигается целиком (без перерисовки) -->
+        <svg class="asm-b asm-b-base" viewBox="0 0 900 760" aria-hidden="true"><g class="asm-bowl" id="asmBowl">
           <ellipse cx="450" cy="538" rx="92" ry="20" fill="#cbbd9f"/>
           <path d="M358 520h184v18H358z" fill="#d8cbb0"/>
           <path d="M220 300C224 450 330 540 450 540S676 450 680 300Z" fill="url(#bwBody)"/>
@@ -554,12 +572,16 @@
           <ellipse cx="450" cy="304" rx="216" ry="63" fill="url(#bwInner)"/>
           <path d="M424 262c4-8 14-10 18-4 4-8 14-6 14 2" stroke="#7b2424" stroke-width="2.2" fill="none"/>
           <text x="450" y="276" text-anchor="middle" font-size="8" fill="#7b2424" font-family="Manrope, sans-serif" font-weight="700">PHỞ VIỆT</text>
+        </g></svg>
+        <svg class="asm-b asm-b-broth" viewBox="0 0 900 760" aria-hidden="true">
           <!-- бульон -->
           <g class="asm-broth">
             <ellipse cx="450" cy="316" rx="200" ry="54" fill="url(#broth)"/>
             <ellipse cx="400" cy="300" rx="70" ry="10" fill="#f3c27a" opacity=".25"/>
             <circle cx="520" cy="330" r="5" fill="#f0b45a" opacity=".5"/><circle cx="360" cy="332" r="3.5" fill="#f0b45a" opacity=".45"/><circle cx="560" cy="306" r="3" fill="#f0b45a" opacity=".45"/>
           </g>
+        </svg>
+        <svg class="asm-b asm-b-noodles" viewBox="0 0 900 760" aria-hidden="true">
           <!-- лапша -->
           <g class="asm-noodles" clip-path="url(#brothClip)">
           <path d="M269 279 q26 -4.5 52 -0.5 t52 -0.2 t52 -0.2 t52 -0.2 t52 -0.2 t52 -0.2 t52 -0.2 t52 -0.2 t52 -0.2" stroke="#c9b48c" stroke-width="8" fill="none" stroke-linecap="round" opacity=".35"/><path d="M269 279 q26 -4.5 52 -0.5 t52 -0.2 t52 -0.2 t52 -0.2 t52 -0.2 t52 -0.2 t52 -0.2 t52 -0.2 t52 -0.2" stroke="#ece0c8" stroke-width="6.5" fill="none" stroke-linecap="round"/>
@@ -585,6 +607,8 @@
           <path d="M261 361 q22 -6.0 44 -2.0 t44 -1.0 t44 -1.0 t44 -1.0 t44 -1.0 t44 -1.0 t44 -1.0 t44 -1.0 t44 -1.0 t44 -1.0 t44 -1.0" stroke="#c9b48c" stroke-width="8" fill="none" stroke-linecap="round" opacity=".35"/><path d="M261 361 q22 -6.0 44 -2.0 t44 -1.0 t44 -1.0 t44 -1.0 t44 -1.0 t44 -1.0 t44 -1.0 t44 -1.0 t44 -1.0 t44 -1.0 t44 -1.0" stroke="#f4ead6" stroke-width="6.5" fill="none" stroke-linecap="round"/>
           <path d="M260 359 q26 -5.0 52 -1.0 t52 -0.5 t52 -0.5 t52 -0.5 t52 -0.5 t52 -0.5 t52 -0.5 t52 -0.5 t52 -0.5" stroke="#c9b48c" stroke-width="8" fill="none" stroke-linecap="round" opacity=".35"/><path d="M260 359 q26 -5.0 52 -1.0 t52 -0.5 t52 -0.5 t52 -0.5 t52 -0.5 t52 -0.5 t52 -0.5 t52 -0.5 t52 -0.5" stroke="#fbf5e8" stroke-width="6.5" fill="none" stroke-linecap="round"/>
           </g>
+        </svg>
+        <svg class="asm-b asm-b-beef" viewBox="0 0 900 760" aria-hidden="true">
           <!-- говядина -->
           <g class="asm-beef">
           <use href="#beefSlice" transform="translate(470 284) rotate(-10)"/>
@@ -594,6 +618,8 @@
           <use href="#beefSlice" transform="translate(490 326) rotate(4)"/>
           <use href="#beefSlice" transform="translate(392 288) rotate(-4)"/>
           </g>
+        </svg>
+        <svg class="asm-b asm-b-greens" viewBox="0 0 900 760" aria-hidden="true">
           <!-- зелень -->
           <g class="asm-greens">
           <use href="#basil" transform="translate(330 288) rotate(-30)"/>
@@ -636,17 +662,20 @@
           <path d="M561 312 a14 8 -20 0 1 28 0" stroke="#f4ecf2" stroke-width="3" fill="none" opacity=".9"/>
           <path d="M456 262 a14 8 40 0 1 28 0" stroke="#f4ecf2" stroke-width="3" fill="none" opacity=".9"/>
           </g>
+        </svg>
+        <svg class="asm-b asm-b-brothtop" viewBox="0 0 900 760" aria-hidden="true">
           <!-- долитый бульон: поднимается вокруг лапши и мяса -->
           <g class="asm-broth-top" clip-path="url(#brothClip)">
             <ellipse cx="450" cy="338" rx="206" ry="40" fill="url(#brothTop)"/>
             <ellipse cx="380" cy="334" rx="40" ry="5" fill="#f6c98a" opacity=".35"/>
             <circle cx="430" cy="340" r="4" fill="#f3c27a" opacity=".55"/><circle cx="520" cy="346" r="3" fill="#f3c27a" opacity=".5"/><circle cx="350" cy="346" r="2.6" fill="#f3c27a" opacity=".5"/><circle cx="585" cy="332" r="3.4" fill="#f3c27a" opacity=".5"/>
           </g>
+        </svg>
+        <svg class="asm-b asm-b-top" viewBox="0 0 900 760" aria-hidden="true">
           <!-- блик на краю -->
           <path d="M260 268c60-34 300-40 380-6" stroke="#fff" stroke-width="4" fill="none" opacity=".6" stroke-linecap="round"/>
-        </g>
-
         </svg>
+        </div>
         <svg class="asm-l asm-l-fx" viewBox="0 0 900 760" aria-hidden="true">
         <!-- пар -->
         <g class="asm-steam" aria-hidden="true">
@@ -685,6 +714,7 @@
         </g></g>
         </svg>
       </div>
+    </div>
     </div>
   </section>
 
@@ -1002,11 +1032,11 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
-<script src="hours.js?v=31"></script>
-<script src="coupons.js?v=31"></script>
-<script src="menu.js?v=31"></script>
-<script src="app.js?v=31"></script>
-<script src="pwa.js?v=31" defer></script>
-<script src="fx.js?v=31" defer></script>
+<script src="hours.js?v=32"></script>
+<script src="coupons.js?v=32"></script>
+<script src="menu.js?v=32"></script>
+<script src="app.js?v=32"></script>
+<script src="pwa.js?v=32" defer></script>
+<script src="fx.js?v=32" defer></script>
 </body>
 </html>

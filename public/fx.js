@@ -14,16 +14,14 @@
   const touch = q === "full" ? false : q === "touch" ? true : !finePointer;
   root.classList.add(touch ? "fx-touch" : "fx-full");
 
-  // Слои первого экрана и сборки фо отдаём видеокарте, только пока секция рядом с экраном (экономим память)
-  const watch = (sel, on, off) => {
+  // Слои первого экрана и сборки фо отдаём видеокарте заранее — за экран до появления секции, чтобы браузер
+  // успел их подготовить до того, как они понадобятся. Класс ставим на саму секцию, а не на весь документ.
+  const near = sel => {
     const el = $(sel); if (!el) return;
-    new IntersectionObserver(([e]) => {
-      root.classList.toggle(on, e.isIntersecting);
-      if (off) root.classList.toggle(off, !e.isIntersecting);
-    }, { rootMargin: "300px 0px" }).observe(el);
+    new IntersectionObserver(([e]) => el.classList.toggle("is-near", e.isIntersecting), { rootMargin: "100% 0px" }).observe(el);
   };
-  watch("#hero", "hero-on", "hero-off");
-  watch("#assemble", "asm-on");
+  near("#heroTrack");
+  near("#assemble");
 
   const hideLoader = () => {
     const l = $("#loader"); if (!l) return;
@@ -155,6 +153,9 @@
   const { gsap, ScrollTrigger } = window;
   gsap.registerPlugin(ScrollTrigger);
   ScrollTrigger.config({ ignoreMobileResize: true });
+  // Закрепление экранов — position: sticky в CSS: его держит сам браузер, поэтому на iPhone блок не дёргается
+  // при прокрутке вверх и у верха страницы. Анимация идёт, пока секция стоит: длина = дорожка минус секция.
+  const stickRun = (track, stick) => Math.max(1, $(track).offsetHeight - $(stick).offsetHeight);
 
   /* ---------- Плавный скролл ---------- */
   let lenis = null;
@@ -222,7 +223,7 @@
     // а сглаживание прокрутки короче, чтобы сцена шла за пальцем без запаздывания
     const short = touch && !desktop;
     const tl = gsap.timeline({
-      scrollTrigger: { trigger: "#hero", start: "top top", end: desktop ? "+=150%" : "+=90%", scrub: touch ? 0.35 : 1, pin: true, anticipatePin: 1 }
+      scrollTrigger: { trigger: "#heroTrack", start: "top top", end: () => "+=" + stickRun("#heroTrack", "#hero"), scrub: touch ? 0.35 : 1 }
     });
     tl.to(letters[0], { xPercent: desktop ? -70 : -40, rotation: -8, ease: "none", duration: 1 }, 0)
       .to(letters[2], { xPercent: desktop ? 70 : 40, rotation: 8, ease: "none", duration: 1 }, 0)
@@ -260,13 +261,16 @@
       const tl = gsap.timeline({
         defaults: { ease: "power2.out" },
         scrollTrigger: {
-          trigger: "#assemble", start: "top top", end: desktop ? "+=420%" : "+=240%",
-          scrub: touch ? 0.35 : 1, pin: true, anticipatePin: 1, onUpdate: self => setStep(self.progress)
+          trigger: "#assemble", start: "top top", end: () => "+=" + stickRun("#assemble", ".asm-sticky"),
+          scrub: touch ? 0.35 : 1, onUpdate: self => setStep(self.progress)
         }
       });
       // Чаша, поднос и тень — отдельные слои сцены (у всех viewBox 900×760): двигаем слой целиком, без перерисовки.
       // Сдвиги в процентах высоты сцены: 1 единица рисунка = 100/760 %; дно чаши (450, 548) = точка «50% 72.1%».
       const U = 100 / 760, BOWL_ORIGIN = "50% 72.1%";
+      // На телефоне начинка падает целыми слоями (лапша, мясо, зелень, бульон): слой сдвигается на видеокарте,
+      // картинка чаши не перерисовывается. На компьютере — каждая травинка и ломтик по отдельности.
+      const flat = touch;
       const fly = (sel, at) => {
         tl.fromTo(sel, { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.7)" }, at)
           .to(sel, { x: BOWL.x, y: BOWL.y, scale: 0.25, rotation: "+=120", opacity: 0, duration: 0.9, ease: "power2.in" }, at + 0.6);
@@ -282,23 +286,28 @@
         .fromTo(".asm-l-bowl", { opacity: desktop ? 1 : 0 }, { opacity: 1, duration: 0.35, ease: "none" }, 0)
         .fromTo(".asm-l-bowl", { rotation: -38, scale: 0.86, transformOrigin: BOWL_ORIGIN }, { rotation: 0, scale: 1, duration: 1.6, ease: "elastic.out(1, 0.45)" }, 0)
         // у самой тени прозрачность .65, поэтому слою 0.77 — вместе как прежние 0.5
-        .fromTo(".asm-l-shadow", { scale: 0.12, opacity: 0, transformOrigin: BOWL_ORIGIN }, { scale: 1, opacity: 0.77, duration: 1.4, ease: "bounce.out" }, 0)
-        .from(".asm-broth-top", { opacity: 0, duration: 0.01 }, 0);
+        .fromTo(".asm-l-shadow", { scale: 0.12, opacity: 0, transformOrigin: BOWL_ORIGIN }, { scale: 1, opacity: 0.77, duration: 1.4, ease: "bounce.out" }, 0);
+      if (!flat) tl.from(".asm-broth-top", { opacity: 0, duration: 0.01 }, 0);
       // 01 — лапша
       fly(".fly-noodle", 1.5);
-      tl.from(".asm-noodles path", { y: -70, opacity: 0, duration: 1, stagger: 0.015 }, 2.2);
+      if (flat) tl.fromTo(".asm-b-noodles", { yPercent: -70 * U, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1, ease: "power2.out" }, 2.2);
+      else tl.from(".asm-noodles path", { y: -70, opacity: 0, duration: 1, stagger: 0.015 }, 2.2);
       bump(2.5);
       // 02 — говядина
       fly(".fly-beef", 3.5); fly(".fly-beef2", 3.7); fly(".fly-anise", 3.9);
       bump(4.6);
-      tl.from(".asm-beef use", { y: -160, x: i => (i % 2 ? 120 : -120), rotation: i => (i % 2 ? 40 : -40), opacity: 0, duration: 1.1, stagger: 0.12, ease: "power3.out" }, 4.2);
+      if (flat) tl.fromTo(".asm-b-beef", { yPercent: -160 * U, rotation: -10, opacity: 0, transformOrigin: "50% 40%" }, { yPercent: 0, rotation: 0, opacity: 1, duration: 1.1, ease: "back.out(1.3)" }, 4.2);
+      else tl.from(".asm-beef use", { y: -160, x: i => (i % 2 ? 120 : -120), rotation: i => (i % 2 ? 40 : -40), opacity: 0, duration: 1.1, stagger: 0.12, ease: "power3.out" }, 4.2);
       // 03 — зелень
       fly(".fly-basil", 5.5); fly(".fly-onion", 5.6); fly(".fly-cil", 5.8);
       bump(6.6);
-      tl.from(".asm-greens > *", { y: -110, scale: 0, rotation: () => gsap.utils.random(-180, 180), opacity: 0, duration: 1, stagger: 0.025, ease: "back.out(1.4)" }, 6.2);
+      if (flat) tl.fromTo(".asm-b-greens", { yPercent: -110 * U, scale: 0.7, opacity: 0, transformOrigin: "50% 40%" }, { yPercent: 0, scale: 1, opacity: 1, duration: 1, ease: "back.out(1.4)" }, 6.2);
+      else tl.from(".asm-greens > *", { y: -110, scale: 0, rotation: () => gsap.utils.random(-180, 180), opacity: 0, duration: 1, stagger: 0.025, ease: "back.out(1.4)" }, 6.2);
       // 04 — бульон: половник наливает кипящий бульон, он заваривает говядину, идёт пар
-      tl.from(".asm-broth", { scaleY: 0, opacity: 0, transformOrigin: "50% 50%", duration: 0.8 }, 8.9)
-        .from(".asm-steam", { opacity: 0, duration: 0.8 }, 9.1);
+      // центр бульона (450, 316) = «50% 41.6%» слоя
+      if (flat) tl.fromTo(".asm-b-broth", { scaleY: 0, opacity: 0, transformOrigin: "50% 41.6%" }, { scaleY: 1, opacity: 1, duration: 0.8 }, 8.9);
+      else tl.from(".asm-broth", { scaleY: 0, opacity: 0, transformOrigin: "50% 50%", duration: 0.8 }, 8.9);
+      tl.from(".asm-steam", { opacity: 0, duration: 0.8 }, 9.1);
       tl.fromTo(".asm-ladle", { opacity: 0, x: 220, y: -180 }, { opacity: 1, x: 0, y: 0, duration: 0.8, ease: "power3.out" }, 7.7)
         .to(".asm-ladle > g", { rotation: -35, svgOrigin: "560 120", duration: 0.5, ease: "power2.inOut" }, 8.5)
         .fromTo(pour, { opacity: 0, strokeDasharray: pourLen, strokeDashoffset: pourLen }, { opacity: 0.95, strokeDashoffset: 0, duration: 0.45, ease: "power1.in" }, 8.8)
@@ -306,22 +315,25 @@
         .fromTo(".asm-splash circle", { opacity: 0, scale: 0, transformOrigin: "50% 50%" }, { opacity: 1, scale: 1, y: -14, duration: 0.3, stagger: 0.05 }, 9.1)
         .to(".asm-splash", { opacity: 0, duration: 0.25 }, 9.75)
         .set(".asm-splash", { opacity: 1 }, 9.1)
-        .to(".asm-broth-top", { opacity: 1, duration: 0.01 }, 9.05)
-        .from(".asm-broth-top ellipse, .asm-broth-top circle", { opacity: 0, scaleY: 0.3, transformOrigin: "50% 100%", duration: 0.8, stagger: 0.04 }, 9.05)
         .to(".asm-steam", { scale: 1.35, transformOrigin: "50% 100%", duration: 0.8 }, 9.2)
         .to(pour, { strokeDashoffset: -pourLen, duration: 0.4, ease: "power1.in" }, 9.8)
         .to(pour, { opacity: 0, duration: 0.05 }, 10.2)
         .to(".asm-ladle > g", { rotation: 0, svgOrigin: "560 120", duration: 0.4 }, 9.9)
         .to(".asm-ladle", { opacity: 0, x: 220, y: -180, duration: 0.6, ease: "power2.in" }, 10.1)
         .to(".asm-steam", { scale: 1, duration: 0.8 }, 10.4);
+      // долитый бульон поднимается вокруг лапши и мяса
+      if (flat) tl.fromTo(".asm-b-brothtop", { opacity: 0, yPercent: 3 * U }, { opacity: 1, yPercent: 0, duration: 0.8 }, 9.05);
+      else tl.to(".asm-broth-top", { opacity: 1, duration: 0.01 }, 9.05)
+        .from(".asm-broth-top ellipse, .asm-broth-top circle", { opacity: 0, scaleY: 0.3, transformOrigin: "50% 100%", duration: 0.8, stagger: 0.04 }, 9.05);
       bump(9.1);
-      // 05 — подача на бамбуковом подносе
+      // 05 — подача на бамбуковом подносе; палочки, гарнир и соусы приезжают следом своим слоем
       tl.from(".asm-l-tray", { yPercent: 340 * U, opacity: 0, duration: 1.3, ease: "power3.out" }, 10.2)
+        .from(".asm-l-side", { yPercent: 380 * U, opacity: 0, duration: 1.3, ease: "power3.out" }, 10.45)
         .to(".asm-l-bowl", { yPercent: 14 * U, duration: 0.6, ease: "power2.inOut" }, 11.1)
-        .to(".asm-l-shadow", { yPercent: 14 * U, duration: 0.6, ease: "power2.inOut" }, 11.1)
-        .from(".asm-garnish > *", { y: 40, opacity: 0, scale: 0.6, transformOrigin: "50% 100%", duration: 0.7, stagger: 0.04, ease: "back.out(1.6)" }, 10.9)
-        .from(".asm-side > :not(.asm-garnish)", { y: 50, opacity: 0, duration: 0.8, stagger: 0.08 }, 11.0)
-        .to(".asm-scene", { scale: desktop ? 0.94 : 0.97, duration: 0.8, ease: "none" }, 12.2)
+        .to(".asm-l-shadow", { yPercent: 14 * U, duration: 0.6, ease: "power2.inOut" }, 11.1);
+      if (!flat) tl.from(".asm-garnish > *", { y: 40, opacity: 0, scale: 0.6, transformOrigin: "50% 100%", duration: 0.7, stagger: 0.04, ease: "back.out(1.6)" }, 10.9)
+        .from(".asm-side > :not(.asm-garnish)", { y: 50, opacity: 0, duration: 0.8, stagger: 0.08 }, 11.0);
+      tl.to(".asm-scene", { scale: desktop ? 0.94 : 0.97, duration: 0.8, ease: "none" }, 12.2)
         .to({}, { duration: 0.6 }, 13.0);
       setStep(0);
       return () => {};
@@ -371,7 +383,7 @@
 
   /* ---------- Активная глава в навигации ---------- */
   const navLinks = $$(".chapter-nav a");
-  ["#hero", "#assemble", "#story", "#hits", "#delivery"].forEach((sel, i) => {
+  ["#heroTrack", "#assemble", "#story", "#hits", "#delivery"].forEach((sel, i) => {
     if (!$(sel)) return;
     ScrollTrigger.create({ trigger: sel, start: "top center", end: "bottom center", onToggle: s => s.isActive && navLinks.forEach((a, j) => a.classList.toggle("is-active", i === j)) });
   });

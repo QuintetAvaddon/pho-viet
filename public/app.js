@@ -40,10 +40,23 @@
     if (q <= 0) delete cart[id]; else cart[id] = Math.min(q, 99);
     save(); renderAll();
   }
+  // Лёгкий отклик при добавлении: Android — вибрация, iPhone (iOS 18+) — системный отклик переключателя.
+  // Работает только в ответ на касание — так устроены браузеры.
+  const coarse = matchMedia("(pointer: coarse)").matches;
+  function haptic() {
+    try {
+      if (navigator.vibrate) { navigator.vibrate(12); return; }
+      if (!coarse) return;
+      const l = document.createElement("label"), i = document.createElement("input");
+      i.type = "checkbox"; i.setAttribute("switch", "");
+      l.setAttribute("aria-hidden", "true"); l.style.display = "none";
+      l.append(i); document.head.append(l); l.click(); l.remove();
+    } catch { /* нет поддержки — просто без вибрации */ }
+  }
   function add(id, q = 1) {
     setQty(id, (cart[id] || 0) + q);
     const b = $("#cartCount"); b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump");
-    toast(`«${BY_ID[id].name}» в корзине`);
+    haptic();
   }
 
   /* ---------- Rendering ---------- */
@@ -236,7 +249,7 @@
     const t = e.target.closest("[data-add],[data-inc],[data-dec],[data-open],#toCheckout,#cartOpen,#mobileCart");
     if (!t) return;
     if (t.dataset.add) add(t.dataset.add);
-    else if (t.dataset.inc) setQty(t.dataset.inc, (cart[t.dataset.inc] || 0) + 1);
+    else if (t.dataset.inc) { setQty(t.dataset.inc, (cart[t.dataset.inc] || 0) + 1); haptic(); }
     else if (t.dataset.dec) setQty(t.dataset.dec, (cart[t.dataset.dec] || 0) - 1);
     else if (t.dataset.open) openDish(t.dataset.open);
     else if (t.id === "toCheckout") openCheckout();
@@ -584,7 +597,7 @@
   window.PV = { openOverlay, toast, openCart: () => openOverlay($("#cartOverlay")) };
   {
     const qs = new URLSearchParams(location.search);
-    const later = fn => setTimeout(fn, document.getElementById("splash") ? 1200 : 250);
+    const later = fn => setTimeout(fn, document.getElementById("splash") ? 2600 : 250);
     if (qs.get("cart") && $("#cartOverlay")) later(() => openOverlay($("#cartOverlay")));
     else if (qs.get("dish") && BY_ID[qs.get("dish")]) later(() => openDish(qs.get("dish")));
   }

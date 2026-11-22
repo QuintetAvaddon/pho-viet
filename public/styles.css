@@ -1002,9 +1002,9 @@ html.fx-touch .asm-glow, html.fx-touch .panel .steam, html.fx-touch .dish-art sv
 html.fx-touch .split .w > span { will-change: auto; }
 /* Всё, что двигается при прокрутке, — отдельные слои на видеокарте: прокрутка сдвигает готовые картинки */
 html.fx-touch .marquee-row, html.fx-touch .vertical-big, html.fx-touch .footer-giant { will-change: transform; }
-html.hero-on .moon-wrap, html.hero-on .moon, html.hero-on .karst-far, html.hero-on .karst-near, html.hero-on .town,
-html.hero-on .front, html.hero-on .lanterns, html.hero-on .giant-inner, html.hero-on .gl,
-html.hero-on .hero-copy, html.hero-on .hero-ui .chapter-label { will-change: transform, opacity; }
+.hero-track.is-near .moon-wrap, .hero-track.is-near .moon, .hero-track.is-near .karst-far, .hero-track.is-near .karst-near, .hero-track.is-near .town,
+.hero-track.is-near .front, .hero-track.is-near .lanterns, .hero-track.is-near .giant-inner, .hero-track.is-near .gl,
+.hero-track.is-near .hero-copy, .hero-track.is-near .hero-ui .chapter-label { will-change: transform, opacity; }
 /* Слои луны и фонарей на телефоне короче экрана — меньше памяти видеокарты (сдвиги пересчитаны в fx.js) */
 @media (max-width: 720px) {
   html.fx-touch .moon-wrap { height: 55%; }
@@ -1014,7 +1014,7 @@ html.hero-on .hero-copy, html.hero-on .hero-ui .chapter-label { will-change: tra
 /* Сборка фо: сцена из слоёв одного размера — чаша, поднос и тень двигаются целиком, не перерисовывая остальное */
 .asm-scene { aspect-ratio: 900 / 760; }
 .asm-l { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-html.asm-on .asm-l { will-change: transform; }
+.assemble.is-near .asm-l:not(.asm-l-back) { will-change: transform; }
 
 /* Лепестки и угольки на телефоне: CSS-анимации на видеокарте вместо холста */
 .petals { pointer-events: none; overflow: hidden; }
@@ -1024,7 +1024,7 @@ html.asm-on .asm-l { will-change: transform; }
 @keyframes petalFall { from { transform: translate3d(0, 0, 0) rotate(0deg); } to { transform: translate3d(var(--dx), 112vh, 0) rotate(var(--r)); } }
 @keyframes petalFlutter { from { transform: scaleY(1); } to { transform: scaleY(.4); } }
 @keyframes emberRise { 0% { transform: translate3d(0, 0, 0); opacity: 0; } 15% { opacity: .9; } 75% { opacity: .45; } 100% { transform: translate3d(var(--dx), -60vh, 0); opacity: 0; } }
-html.hero-off .petals i, html.hero-off .petals i b, html.hero-off .petals u { animation-play-state: paused; }
+.hero-track:not(.is-near) .petals i, .hero-track:not(.is-near) .petals i b, .hero-track:not(.is-near) .petals u { animation-play-state: paused; }
 
 /* =========================================================
    Работа в Phở Việt
@@ -1298,3 +1298,117 @@ body.app-page:not(.page-menu) { background: var(--bg); }
 .totals .discount span:last-child { color: var(--jade-text); font-weight: 700; }
 /* подсказки над нижними вкладками, а не под ними */
 @media (max-width: 720px) { body.app-page .toast { bottom: calc(96px + env(safe-area-inset-bottom)); } }
+
+/* =========================================================
+   Карточки меню: высоту задаёт само фото (без процентов высоты) — одинаково в Safari и Chrome
+   ========================================================= */
+.card-art:has(img) { display: block; aspect-ratio: auto; }
+.card-art img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
+.dish-art:has(img) { display: block; aspect-ratio: auto; }
+.dish-art img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
+@media (max-width: 720px) {
+  /* размер карточки задаёт фото — старые пропорции рамки (16:8,6 у большой) больше не действуют */
+  .page-menu .card-art:has(img), .page-menu .card.is-featured .card-art:has(img) { aspect-ratio: auto; }
+  .page-menu .card-art img { aspect-ratio: 1 / .84; }
+  /* большая карточка: фото почти целиком (было 16:8,6 — обрезалась половина чаши) */
+  .page-menu .card.is-featured .card-art img { aspect-ratio: 1 / .84; }
+  /* подпись под фото, а не поверх — затемнение низа фото не нужно */
+  .page-menu .card-art:has(img)::after { background: linear-gradient(180deg, rgba(17, 9, 9, .22) 0%, transparent 26%); }
+}
+
+/* =========================================================
+   Нижняя панель вкладок — ниже, у самого края экрана (над полоской «домой» на iPhone)
+   ========================================================= */
+@media (max-width: 720px) {
+  .tabbar { bottom: max(8px, calc(env(safe-area-inset-bottom) - 12px)); height: 64px; }
+  .tabbar a { width: 52px; height: 52px; }
+  .tabbar .ic { width: 26px; height: 26px; }
+  .tab-badge { top: 3px; right: 1px; }
+  .tab-badge.bump { animation: bump .45s var(--ease-out); }
+  body.app-page { padding-bottom: calc(84px + max(8px, env(safe-area-inset-bottom) - 12px)); }
+  body.app-page .toast { bottom: calc(84px + max(8px, env(safe-area-inset-bottom) - 12px)); }
+  body.app-page .mobile-cart { bottom: max(10px, calc(env(safe-area-inset-bottom) - 10px)); }
+}
+
+/* =========================================================
+   Заставка: логотип встроен в страницу (виден сразу), анимация ~2,3 с:
+   карточка «пружинит», обводка, волны, пар над чашей, подпись и пять огоньков (пять ресторанов)
+   ========================================================= */
+.splash { background: #170b0b; transition: opacity .55s ease, visibility .55s; }
+.splash-bg {
+  position: absolute; inset: 0; opacity: 0; animation: splashFade 1.1s ease .15s forwards;
+  background:
+    radial-gradient(60% 42% at 20% 16%, #6d2222 0%, transparent 72%),
+    radial-gradient(55% 40% at 84% 30%, #8c2c2c 0%, transparent 72%),
+    radial-gradient(70% 48% at 72% 86%, #4c1717 0%, transparent 72%),
+    radial-gradient(48% 36% at 14% 82%, rgba(181, 209, 122, .14) 0%, transparent 72%);
+}
+.splash-glow { opacity: 0; animation: splashFade 1.2s ease .3s forwards, splashDrift 5s ease-in-out infinite alternate; }
+@keyframes splashFade { to { opacity: 1; } }
+.splash-center { position: relative; width: 172px; height: 172px; transition: transform .6s cubic-bezier(.5, 0, .2, 1), opacity .5s ease; }
+.splash.done .splash-center { transform: scale(1.12); opacity: 0; }
+.splash-card {
+  position: absolute; inset: 0; width: auto; padding: 16px; border-radius: 46px; background: #fff;
+  box-shadow: 0 30px 80px -24px rgba(0, 0, 0, .75); animation: splashPop .95s cubic-bezier(.2, .8, .2, 1) both;
+}
+.splash-card img { display: block; width: 140px; height: 140px; }
+/* запуск с экрана «Домой»: карточка уже на месте (как на стартовой картинке) — она «вздыхает» */
+html.splash-launch .splash-card { animation: splashBeat 1s cubic-bezier(.3, .7, .3, 1) .2s both; }
+@keyframes splashPop { 0% { transform: scale(.55); opacity: 0; } 45% { opacity: 1; } 62% { transform: scale(1.07); } 80% { transform: scale(.98); } 100% { transform: scale(1); opacity: 1; } }
+@keyframes splashBeat { 0% { transform: scale(1); } 28% { transform: scale(.93); } 58% { transform: scale(1.06); } 80% { transform: scale(.99); } 100% { transform: scale(1); } }
+.splash-trace { position: absolute; left: -6px; top: -6px; width: 184px; height: 184px; overflow: visible; pointer-events: none; }
+.splash-trace rect { fill: none; stroke: #B5D17A; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 640; stroke-dashoffset: 640; animation: splashTrace 1.1s cubic-bezier(.6, 0, .3, 1) .55s forwards; }
+@keyframes splashTrace { 70% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+.splash-ring { position: absolute; inset: 0; border-radius: 50px; border: 2px solid rgba(181, 209, 122, .55); opacity: 0; animation: splashRing 1.4s cubic-bezier(.2, .7, .3, 1) .6s forwards; }
+.splash-ring.r2 { border-color: rgba(214, 72, 72, .6); animation-delay: .9s; }
+@keyframes splashRing { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(2.3); opacity: 0; } }
+.splash-steam { position: absolute; left: 50%; bottom: calc(100% + 4px); width: 120px; height: 90px; margin-left: -60px; overflow: visible; }
+.splash-steam path { fill: none; stroke: rgba(244, 238, 228, .55); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 90; stroke-dashoffset: 90; opacity: 0; animation: splashSteam 1.9s ease-out .7s infinite; }
+.splash-steam path:nth-child(2) { animation-delay: .95s; }
+.splash-steam path:nth-child(3) { animation-delay: 1.2s; }
+@keyframes splashSteam { 0% { stroke-dashoffset: 90; opacity: 0; transform: translateY(8px); } 30% { opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; transform: translateY(-14px); } }
+.splash-tag {
+  position: absolute; left: 50%; top: calc(100% + 30px); margin: 0; transform: translate(-50%, 10px); white-space: nowrap; opacity: 0;
+  font: 800 12px/1 var(--font-body); letter-spacing: .26em; text-transform: uppercase; color: #F4EEE4;
+  animation: splashTag .7s cubic-bezier(.2, .8, .2, 1) .95s forwards;
+}
+@keyframes splashTag { to { opacity: .92; transform: translate(-50%, 0); } }
+.splash-dots { position: absolute; left: 50%; top: calc(100% + 58px); display: flex; gap: 10px; transform: translateX(-50%); }
+.splash-dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(244, 238, 228, .18); animation: splashDot .5s ease forwards; }
+.splash-dots i:nth-child(1) { animation-delay: 1.15s; }
+.splash-dots i:nth-child(2) { animation-delay: 1.3s; }
+.splash-dots i:nth-child(3) { animation-delay: 1.45s; }
+.splash-dots i:nth-child(4) { animation-delay: 1.6s; }
+.splash-dots i:nth-child(5) { animation-delay: 1.75s; }
+@keyframes splashDot { 50% { transform: scale(1.6); } 100% { background: #B5D17A; box-shadow: 0 0 10px rgba(181, 209, 122, .8); transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .splash *, .splash-card { animation-duration: .01s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; }
+}
+
+/* =========================================================
+   Закрепление первого экрана и сборки фо — position: sticky.
+   Его держит сам браузер: на iPhone блок не дёргается при прокрутке вверх и у верха страницы.
+   Высота дорожки = экран + длина анимации (как было: +90/150% и +240/420% высоты экрана).
+   ========================================================= */
+.hero { position: sticky; top: 0; }
+html:is(.fx-full, .fx-touch):not(.no-fx) .hero-track { height: calc(max(100vh, 500px) + 150vh); height: calc(max(100svh, 500px) + 150svh); }
+.assemble { overflow: clip; background: none; }
+.assemble::before { content: none; }
+.asm-sticky { position: sticky; top: 0; overflow: hidden; background: radial-gradient(90% 70% at 60% 55%, #2a1610 0%, #160c0b 55%, var(--bg) 100%); }
+.asm-sticky::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 24vh; background: linear-gradient(var(--bg), rgba(17, 9, 9, 0)); pointer-events: none; }
+html:is(.fx-full, .fx-touch):not(.no-fx) .assemble { height: calc(max(100vh, 620px) + 420vh); height: calc(max(100svh, 620px) + 420svh); }
+@media (max-width: 1100px) {
+  html:is(.fx-full, .fx-touch):not(.no-fx) .assemble { height: calc(max(100vh, 620px) + 240vh); height: calc(max(100svh, 620px) + 240svh); }
+}
+@media (max-width: 720px) {
+  html:is(.fx-full, .fx-touch):not(.no-fx) .hero-track { height: calc(max(100vh, 560px) + 90vh); height: calc(max(100svh, 560px) + 90svh); }
+}
+/* свечение под чашей — мягкий градиент, без размытия (размытие дорого перерисовывать) */
+.asm-glow { filter: none; }
+
+/* Чаша из слоёв: основа, бульон, лапша, мясо, зелень, долитый бульон, блик — один размер, лежат друг на друге */
+.asm-b { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+/* на телефоне каждый слой начинки — готовая картинка на видеокарте: при появлении только сдвигается */
+html.fx-touch .assemble.is-near .asm-b-broth, html.fx-touch .assemble.is-near .asm-b-noodles,
+html.fx-touch .assemble.is-near .asm-b-beef, html.fx-touch .assemble.is-near .asm-b-greens,
+html.fx-touch .assemble.is-near .asm-b-brothtop { will-change: transform, opacity; }
