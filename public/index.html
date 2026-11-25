@@ -54,7 +54,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=38">
+  <link rel="stylesheet" href="styles.css?v=39">
   <script>
     // При обновлении всегда начинаем с главного экрана, а не с места прошлой прокрутки
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -157,6 +157,8 @@
 
       <canvas class="layer particles" id="particles" aria-hidden="true"></canvas>
       <div class="layer vignette" aria-hidden="true"></div>
+      <!-- Передний план: кувшинки с лотосами в нижних углах — ближе всего, поверх букв и затемнения краёв -->
+      <div class="layer front" data-depth="0.6" aria-hidden="true"><i class="lotus l1"></i><i class="lotus l2"></i></div>
     </div>
 
     <!-- Интерфейс поверх сцены -->
@@ -400,12 +402,12 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
-<script src="hours.js?v=38"></script>
-<script src="coupons.js?v=38"></script>
-<script src="menu.js?v=38"></script>
-<script src="common.js?v=38"></script>
-<script src="app.js?v=38"></script>
-<script src="pwa.js?v=38" defer></script>
-<script src="fx.js?v=38" defer></script>
+<script src="hours.js?v=39"></script>
+<script src="coupons.js?v=39"></script>
+<script src="menu.js?v=39"></script>
+<script src="common.js?v=39"></script>
+<script src="app.js?v=39"></script>
+<script src="pwa.js?v=39" defer></script>
+<script src="fx.js?v=39" defer></script>
 </body>
 </html>

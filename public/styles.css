@@ -271,6 +271,18 @@ body.has-pointer .cursor-glow { opacity: 1; }
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 0 40px rgba(210, 120, 100, .22)) drop-shadow(0 20px 40px rgba(0, 0, 0, .6));
 }
+/* Кувшинки с лотосами — ближний план в нижних углах; слой занимает только низ экрана (меньше памяти видеокарты),
+   цветы чуть покачиваются на воде */
+.front { top: auto; bottom: 0; height: 55%; pointer-events: none; transform-origin: 50% 100%; }
+.lotus { position: absolute; bottom: -3%; width: 44%; max-width: 640px; background: 50% 100% / contain no-repeat; animation: bob 6s ease-in-out infinite; }
+.lotus.l1 { left: -5%; aspect-ratio: 900 / 602; background-image: url(/scene/lotus-1.webp); }
+.lotus.l2 { right: -5%; aspect-ratio: 900 / 734; background-image: url(/scene/lotus-2.webp); animation-delay: -3s; }
+@keyframes bob { 50% { translate: 0 -6px; } }
+@media (max-width: 720px) {
+  .lotus { width: 78%; }
+  .lotus.l1 { left: -14%; }
+  .lotus.l2 { right: -16%; }
+}
 .lanterns { pointer-events: none; }
 .lantern { position: absolute; top: 0; width: 64px; transform-origin: 50% 0; animation: swing 5s ease-in-out infinite; }
 .lantern i { display: block; width: 2px; height: var(--rope, 120px); margin: 0 auto; background: linear-gradient(#000, #5a3a2a); }
@@ -1482,7 +1494,7 @@ html.fx-touch .asm-glow, html.fx-touch .panel .steam { filter: none; }
 html.fx-touch .split .w > span { will-change: auto; }
 /* Всё, что двигается при прокрутке, — отдельные слои на видеокарте: прокрутка сдвигает готовые картинки */
 html.fx-touch .marquee-row, html.fx-touch .vertical-big, html.fx-touch .footer-giant { will-change: transform; }
-.hero-track.is-near .sky, .hero-track.is-near .town, .hero-track.is-near .lanterns, .hero-track.is-near .giant-inner, .hero-track.is-near .gl, .hero-track.is-near .hero-copy, .hero-track.is-near .hero-ui .chapter-label { will-change: transform, opacity; }
+.hero-track.is-near .sky, .hero-track.is-near .town, .hero-track.is-near .front, .hero-track.is-near .lanterns, .hero-track.is-near .giant-inner, .hero-track.is-near .gl, .hero-track.is-near .hero-copy, .hero-track.is-near .hero-ui .chapter-label { will-change: transform, opacity; }
 /* Слои луны и фонарей на телефоне короче экрана — меньше памяти видеокарты (сдвиги пересчитаны в fx.js) */
 @media (max-width: 720px) {
   html.fx-touch .lanterns { height: 30%; }

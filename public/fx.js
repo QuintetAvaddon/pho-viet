@@ -174,7 +174,7 @@
   // Интро и прокрутка двигают разные свойства слоёв (интро — масштаб неба и прозрачность, прокрутка — сдвиг
   // и масштаб города), а мышь — x/y: анимации не перебивают друг друга
   gsap.set(".sky", { scale: 1.15, opacity: 0 });
-  gsap.set(".town", { opacity: 0 });
+  gsap.set([".town", ".front"], { opacity: 0 });
   gsap.set(".lantern", { y: -200 });
   gsap.set(".hero-ui > :not(.hero-copy-wrap)", { opacity: 0 });
 
@@ -184,6 +184,7 @@
     tl.to(".sky", { scale: 1, opacity: 1, duration: 2.4 }, 0.1)
       .to(".town", { opacity: 1, duration: 1.6 }, 0.5)
       .to(letters, { y: 0, opacity: 1, duration: 1.6, stagger: 0.12 }, 0.7)
+      .to(".front", { opacity: 1, duration: 1.4 }, 0.9)
       .to(".lantern", { y: 0, duration: 2, ease: "elastic.out(1, 0.5)", stagger: 0.12 }, 1)
       .to(".hero-ui > :not(.hero-copy-wrap)", { opacity: 1, duration: 1, stagger: 0.08 }, 1.3);
   };
@@ -209,6 +210,7 @@
       // небо с луной уплывает вверх, город у реки приближается — камера будто летит над рекой
       .to(".sky", { yPercent: -4, ease: "none", duration: 1 }, 0)
       .to(".town", { yPercent: 5, scale: 1.12, ease: "none", duration: 1 }, 0)
+      .to(".front", { yPercent: 12, scale: 1.15, ease: "none", duration: 1 }, 0) // кувшинки ближе всех — уходят вниз быстрее
       .to(".lanterns", { yPercent: short ? -60 : -18, ease: "none", duration: 1 }, 0)
       .fromTo(".scroll-hint", { opacity: 1 }, { opacity: 0, duration: 0.15, immediateRender: false }, 0)
       .fromTo("#heroCopy", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0.4);
