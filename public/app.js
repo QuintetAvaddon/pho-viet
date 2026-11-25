@@ -55,7 +55,7 @@
   }
   function add(id, q = 1) {
     setQty(id, (cart[id] || 0) + q);
-    const b = $("#cartCount"); b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump");
+    const b = $("#cartCount"); if (b) { b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump"); }
     haptic();
   }
 
@@ -79,6 +79,8 @@
     </div>`;
   }
 
+  // Большая карточка на всю ширину (телефон) — только у этих блюд, остальные маленькие
+  const FEATURED = new Set(["pho-bo", "com-ga"]);
   function cardHtml(d, featured = false) {
     const rating = d.rating ? `<span class="rating" title="Нравится ${d.rating}% гостей"><svg class="ic" aria-hidden="true"><use href="#i-thumb"/></svg>${d.rating}%</span>` : "";
     return `<article class="card${featured ? " is-featured" : ""}" style="--card-bg:${BG[d.icon]}" data-id="${d.id}">
@@ -103,7 +105,7 @@
       if (!items.length) return "";
       return `<section class="menu-section" id="cat-${c.id}" aria-labelledby="h-${c.id}">
         <h2 id="h-${c.id}">${esc(c.name)} <span class="count">${items.length}</span></h2>
-        <div class="grid">${items.map((d, i) => cardHtml(d, i === 0 && !term)).join("")}</div>
+        <div class="grid">${items.map(d => cardHtml(d, FEATURED.has(d.id) && !term)).join("")}</div>
       </section>`;
     }).join("");
     $("#emptySearch").hidden = shown > 0;
@@ -144,11 +146,12 @@
 
   function renderCart() {
     const n = count(), sub = subtotal();
-    $("#cartCount").textContent = n;
-    $("#headerTotal").textContent = rub(sub);
-    $("#mobileCount").textContent = n;
-    $("#mobileTotal").textContent = rub(sub + deliveryFee(sub, false));
-    $("#mobileCart").hidden = n === 0 || window.innerWidth > 720;
+    const put = (sel, v) => { const e = $(sel); if (e) e.textContent = v; };
+    put("#cartCount", n);
+    put("#headerTotal", rub(sub));
+    put("#mobileCount", n);
+    put("#mobileTotal", rub(sub + deliveryFee(sub, false)));
+    if ($("#mobileCart")) $("#mobileCart").hidden = n === 0 || window.innerWidth > 720;
 
     const body = $("#cartBody"), foot = $("#cartFoot");
     if (!n) {
@@ -191,21 +194,37 @@
 
   /* ---------- Overlays (focus trap, Esc, scroll lock) ---------- */
   let lastFocus = null;
+  // На телефоне фон под окном не прокручивается, но body не трогаем: overflow:hidden у body заставляет
+  // браузер перестраивать всю страницу — отсюда был «лаг» при открытии корзины
+  const touchUI = matchMedia("(pointer: coarse)").matches;
+  const holdTouch = e => {
+    const sc = e.target.closest?.(".drawer-body, .modal");
+    if (!sc || sc.scrollHeight <= sc.clientHeight + 1) e.preventDefault();
+  };
   function openOverlay(el, focusSel) {
-    $$(".overlay:not([hidden])").forEach(o => (o.hidden = true));
+    $$(".overlay:not([hidden])").forEach(o => { if (o !== el) { o.hidden = true; o.classList.remove("is-closing"); } });
     lastFocus = lastFocus || document.activeElement;
+    clearTimeout(el._closing); el.classList.remove("is-closing");
     el.hidden = false;
-    document.body.style.overflow = "hidden";
+    if (touchUI) document.addEventListener("touchmove", holdTouch, { passive: false });
+    else document.body.style.overflow = "hidden";
     document.dispatchEvent(new Event("overlay:open"));
-    requestAnimationFrame(() => (focusSel ? $(focusSel, el) : $("button, input, a", el))?.focus());
+    // на телефоне фокус — после того как окно выехало, и не в поле ввода (иначе выскакивает клавиатура)
+    const target = () => touchUI ? $("button", el) : (focusSel ? $(focusSel, el) : $("button, input, a", el));
+    setTimeout(() => target()?.focus({ preventScroll: true }), touchUI ? 460 : 0);
   }
   function closeOverlay(el) {
-    el.hidden = true;
-    if (!$(".overlay:not([hidden])")) {
-      document.body.style.overflow = "";
-      document.dispatchEvent(new Event("overlay:close"));
-      lastFocus?.focus?.(); lastFocus = null;
-    }
+    if (el.hidden || el.classList.contains("is-closing")) return;
+    el.classList.add("is-closing"); // окно плавно уезжает (styles.css), потом прячется
+    el._closing = setTimeout(() => {
+      el.hidden = true; el.classList.remove("is-closing");
+      if (!$(".overlay:not([hidden])")) {
+        document.removeEventListener("touchmove", holdTouch);
+        document.body.style.overflow = "";
+        document.dispatchEvent(new Event("overlay:close"));
+        lastFocus?.focus?.({ preventScroll: true }); lastFocus = null;
+      }
+    }, 300);
   }
   document.addEventListener("keydown", e => {
     const open = $(".overlay:not([hidden])");
@@ -552,8 +571,8 @@
   $$(".js-hours").forEach(e => (e.textContent = CFG.hours));
   $$(".js-free").forEach(e => (e.textContent = rub(CFG.freeDeliveryFrom)));
   $$(".js-fee").forEach(e => (e.textContent = rub(CFG.deliveryFee)));
-  $("#year").textContent = new Date().getFullYear();
-  window.addEventListener("resize", () => { $("#mobileCart").hidden = count() === 0 || window.innerWidth > 720; });
+  if ($("#year")) $("#year").textContent = new Date().getFullYear();
+  window.addEventListener("resize", () => { if ($("#mobileCart")) $("#mobileCart").hidden = count() === 0 || window.innerWidth > 720; });
 
   /* ---------- Карусели со стрелками (главы, хиты) ---------- */
   function initSlider(trackSel, prevSel, nextSel, barSel, arrowsSel) {

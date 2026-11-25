@@ -1021,9 +1021,9 @@ html.fx-touch .marquee-row, html.fx-touch .vertical-big, html.fx-touch .footer-g
 .petals i { position: absolute; left: 0; top: -24px; width: 12px; height: 7px; translate: var(--x) 0; animation: petalFall var(--d) linear var(--dl) infinite; will-change: transform; }
 .petals i b { display: block; width: 100%; height: 100%; border-radius: 50%; background: var(--c); opacity: .85; scale: var(--s); animation: petalFlutter 1.6s ease-in-out var(--dl) infinite alternate; }
 .petals u { position: absolute; left: 0; bottom: 8%; width: 9px; height: 9px; border-radius: 50%; background: radial-gradient(circle, #ffc878 0%, rgba(255, 110, 60, .5) 40%, rgba(200, 50, 58, 0) 70%); translate: var(--x) 0; opacity: 0; animation: emberRise var(--d) linear var(--dl) infinite; will-change: transform, opacity; }
-@keyframes petalFall { from { transform: translate3d(0, 0, 0) rotate(0deg); } to { transform: translate3d(var(--dx), 112vh, 0) rotate(var(--r)); } }
+@keyframes petalFall { from { transform: translate3d(0, 0, 0) rotate(0deg); } to { transform: translate3d(var(--dx), calc(var(--svh, 1vh) * 112), 0) rotate(var(--r)); } }
 @keyframes petalFlutter { from { transform: scaleY(1); } to { transform: scaleY(.4); } }
-@keyframes emberRise { 0% { transform: translate3d(0, 0, 0); opacity: 0; } 15% { opacity: .9; } 75% { opacity: .45; } 100% { transform: translate3d(var(--dx), -60vh, 0); opacity: 0; } }
+@keyframes emberRise { 0% { transform: translate3d(0, 0, 0); opacity: 0; } 15% { opacity: .9; } 75% { opacity: .45; } 100% { transform: translate3d(var(--dx), calc(var(--svh, 1vh) * -60), 0); opacity: 0; } }
 .hero-track:not(.is-near) .petals i, .hero-track:not(.is-near) .petals i b, .hero-track:not(.is-near) .petals u { animation-play-state: paused; }
 
 /* =========================================================
@@ -1320,14 +1320,14 @@ body.app-page:not(.page-menu) { background: var(--bg); }
    Нижняя панель вкладок — ниже, у самого края экрана (над полоской «домой» на iPhone)
    ========================================================= */
 @media (max-width: 720px) {
-  .tabbar { bottom: max(8px, calc(env(safe-area-inset-bottom) - 12px)); height: 64px; }
+  .tabbar { bottom: calc(max(8px, var(--safe-b, env(safe-area-inset-bottom)) - 12px) - var(--vp-gap, 0px)); height: 64px; }
   .tabbar a { width: 52px; height: 52px; }
   .tabbar .ic { width: 26px; height: 26px; }
   .tab-badge { top: 3px; right: 1px; }
   .tab-badge.bump { animation: bump .45s var(--ease-out); }
   body.app-page { padding-bottom: calc(84px + max(8px, env(safe-area-inset-bottom) - 12px)); }
-  body.app-page .toast { bottom: calc(84px + max(8px, env(safe-area-inset-bottom) - 12px)); }
-  body.app-page .mobile-cart { bottom: max(10px, calc(env(safe-area-inset-bottom) - 10px)); }
+  body.app-page .toast { bottom: calc(84px + max(8px, var(--safe-b, env(safe-area-inset-bottom)) - 12px) - var(--vp-gap, 0px)); }
+  body.app-page .mobile-cart { bottom: calc(max(10px, var(--safe-b, env(safe-area-inset-bottom)) - 10px) - var(--vp-gap, 0px)); }
 }
 
 /* =========================================================
@@ -1391,17 +1391,17 @@ html.splash-launch .splash-card { animation: splashBeat 1s cubic-bezier(.3, .7, 
    Высота дорожки = экран + длина анимации (как было: +90/150% и +240/420% высоты экрана).
    ========================================================= */
 .hero { position: sticky; top: 0; }
-html:is(.fx-full, .fx-touch):not(.no-fx) .hero-track { height: calc(max(100vh, 500px) + 150vh); height: calc(max(100svh, 500px) + 150svh); }
+html:is(.fx-full, .fx-touch):not(.no-fx) .hero-track { height: calc(max(var(--svh, 1vh) * 100, 500px) + var(--svh, 1vh) * 150); }
 .assemble { overflow: clip; background: none; }
 .assemble::before { content: none; }
 .asm-sticky { position: sticky; top: 0; overflow: hidden; background: radial-gradient(90% 70% at 60% 55%, #2a1610 0%, #160c0b 55%, var(--bg) 100%); }
-.asm-sticky::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 24vh; background: linear-gradient(var(--bg), rgba(17, 9, 9, 0)); pointer-events: none; }
-html:is(.fx-full, .fx-touch):not(.no-fx) .assemble { height: calc(max(100vh, 620px) + 420vh); height: calc(max(100svh, 620px) + 420svh); }
+.asm-sticky::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: calc(var(--svh, 1vh) * 24); background: linear-gradient(var(--bg), rgba(17, 9, 9, 0)); pointer-events: none; }
+html:is(.fx-full, .fx-touch):not(.no-fx) .assemble { height: calc(max(var(--svh, 1vh) * 100, 620px) + var(--svh, 1vh) * 420); }
 @media (max-width: 1100px) {
-  html:is(.fx-full, .fx-touch):not(.no-fx) .assemble { height: calc(max(100vh, 620px) + 240vh); height: calc(max(100svh, 620px) + 240svh); }
+  html:is(.fx-full, .fx-touch):not(.no-fx) .assemble { height: calc(max(var(--svh, 1vh) * 100, 620px) + var(--svh, 1vh) * 240); }
 }
 @media (max-width: 720px) {
-  html:is(.fx-full, .fx-touch):not(.no-fx) .hero-track { height: calc(max(100vh, 560px) + 90vh); height: calc(max(100svh, 560px) + 90svh); }
+  html:is(.fx-full, .fx-touch):not(.no-fx) .hero-track { height: calc(max(var(--svh, 1vh) * 100, 560px) + var(--svh, 1vh) * 90); }
 }
 /* свечение под чашей — мягкий градиент, без размытия (размытие дорого перерисовывать) */
 .asm-glow { filter: none; }
@@ -1412,3 +1412,58 @@ html:is(.fx-full, .fx-touch):not(.no-fx) .assemble { height: calc(max(100vh, 620
 html.fx-touch .assemble.is-near .asm-b-broth, html.fx-touch .assemble.is-near .asm-b-noodles,
 html.fx-touch .assemble.is-near .asm-b-beef, html.fx-touch .assemble.is-near .asm-b-greens,
 html.fx-touch .assemble.is-near .asm-b-brothtop { will-change: transform, opacity; }
+
+/* =========================================================
+   Стабильная высота экрана (--svh из fx.js): встроенные браузеры меняют высоту окна, пряча панели, —
+   первый экран, сборка фо и главы больше не перестраиваются на ходу
+   ========================================================= */
+.hero { height: calc(var(--svh, 1vh) * 100); }
+.moon-wrap { padding-top: calc(var(--svh, 1vh) * 12); }
+.giant { padding-top: calc(var(--svh, 1vh) * 30); }
+.moon { width: min(calc(var(--svh, 1vh) * 46), 40vw); }
+.asm-pin { height: calc(var(--svh, 1vh) * 100); }
+.asm-scene { max-height: calc(var(--svh, 1vh) * 100 - var(--header-h) - 30px); }
+@media (max-width: 1100px) { .asm-scene { max-height: calc(var(--svh, 1vh) * 100 - var(--header-h) - 150px); } }
+@media (min-width: 1101px) { .asm-scene { height: calc(var(--svh, 1vh) * 100 - var(--header-h) - 16px); max-height: none; } }
+@media (max-width: 720px) {
+  .moon-wrap { padding-top: calc(var(--svh, 1vh) * 14); }
+  .giant { padding-top: calc(var(--svh, 1vh) * 10); }
+  .moon { width: 56vw; }
+}
+
+/* Меню на телефоне: большие карточки только у избранных блюд — сетка без дыр */
+@media (max-width: 720px) { .page-menu .grid { grid-auto-flow: row dense; } }
+
+/* =========================================================
+   Окна плавно появляются и плавно закрываются; на телефоне корзина и окна — шторка снизу
+   ========================================================= */
+.overlay { bottom: calc(-1 * var(--vp-gap, 0px)); }
+.overlay.is-closing { animation: fadeOut .3s ease forwards; pointer-events: none; }
+@keyframes fadeOut { to { opacity: 0; } }
+.overlay.is-closing .modal { animation: sinkOut .3s ease forwards; }
+@keyframes sinkOut { to { opacity: 0; transform: translateY(24px) scale(.98); } }
+.overlay.is-closing .drawer { animation: slideOut .3s cubic-bezier(.4, 0, 1, 1) forwards; }
+@keyframes slideOut { to { transform: translateX(100%); } }
+.drawer-body { min-height: 0; }
+@keyframes sheetUp { from { transform: translateY(100%); } }
+@keyframes sheetDown { to { transform: translateY(100%); } }
+@media (max-width: 720px) {
+  .overlay { animation: fade .36s ease both; }
+  .overlay-drawer { place-items: end stretch; }
+  .drawer {
+    width: 100%; height: auto; max-height: calc(100% - 28px - env(safe-area-inset-top));
+    border-left: 0; border-top: 1px solid var(--border); border-radius: 26px 26px 0 0;
+    box-shadow: 0 -12px 40px rgba(0, 0, 0, .45); animation: sheetUp .5s cubic-bezier(.22, 1, .36, 1) both;
+  }
+  .drawer::before { content: ""; display: block; flex: none; width: 42px; height: 5px; margin: 8px auto 0; border-radius: 3px; background: rgba(244, 238, 228, .25); }
+  .drawer-head { padding-top: 10px; }
+  .drawer-foot { padding-bottom: max(22px, var(--safe-b, env(safe-area-inset-bottom))); }
+  .overlay.is-closing .drawer { animation: sheetDown .3s cubic-bezier(.4, 0, 1, 1) forwards; }
+  .overlay:not(.overlay-drawer) .modal { animation: sheetUp .48s cubic-bezier(.22, 1, .36, 1) both; }
+  .overlay.is-closing:not(.overlay-drawer) .modal { animation: sheetDown .3s cubic-bezier(.4, 0, 1, 1) forwards; }
+  /* фон под окном не тянется пальцем, листается только содержимое окна */
+  .overlay { overscroll-behavior: contain; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .overlay, .overlay .drawer, .overlay .modal { animation-duration: .01s !important; }
+}

@@ -14,6 +14,18 @@
   const touch = q === "full" ? false : q === "touch" ? true : !finePointer;
   root.classList.add(touch ? "fx-touch" : "fx-full");
 
+  // Стабильная высота экрана (--svh, 1% высоты). Встроенные браузеры (Telegram, Instagram…) меняют высоту окна,
+  // когда прячут свои панели при прокрутке — с обычными 100svh первый экран перестраивался прямо на ходу и дёргался.
+  // Высоту берём при загрузке и меняем только при повороте экрана, изменении окна на компьютере или если окно стало ниже.
+  let vw0 = innerWidth, vh0 = innerHeight;
+  root.style.setProperty("--svh", vh0 / 100 + "px");
+  addEventListener("resize", () => {
+    const w = innerWidth, h = innerHeight, turned = Math.abs(w - vw0) > 1;
+    if (touch && !turned && h >= vh0 - 1) return; // панели браузера спрятались — высоту не трогаем
+    vw0 = w; vh0 = h;
+    root.style.setProperty("--svh", h / 100 + "px");
+  });
+
   // Слои первого экрана и сборки фо отдаём видеокарте заранее — за экран до появления секции, чтобы браузер
   // успел их подготовить до того, как они понадобятся. Класс ставим на саму секцию, а не на весь документ.
   const near = sel => {

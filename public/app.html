@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=32">
+  <link rel="stylesheet" href="styles.css?v=33">
 </head>
 <body class="app-page" data-page="app">
 <div class="splash" id="splash" aria-hidden="true">
@@ -64,6 +64,14 @@
     <symbol id="i-ticket" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 7.5V6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v1.5a2.5 2.5 0 0 0 0 5V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-5.5a2.5 2.5 0 0 0 0-5z"/><path d="M14 5v14" stroke-dasharray="2 2.4"/></g></symbol>
     <symbol id="i-work" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3 12.5h18"/></g></symbol>
     <symbol id="i-globe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 3 2.6 15 0 18M12 3c-2.6 3-2.6 15 0 18"/></g></symbol>
+    <symbol id="i-cart" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M6 6h15l-1.5 9h-12zM6 6 5 3H2M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM18 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-chili" viewBox="0 0 24 24"><path fill="currentColor" d="M15 6c3 0 5 2.4 4.4 5.6C18.3 17.4 11 21 4 20c4.5-2 7.4-5.7 8.1-10.1C12.4 7.4 13.4 6 15 6z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M15 6c0-1.6.8-2.6 2.4-3"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><path fill="currentColor" d="M20 4C9 4 4 9 4 16c0 1.4.3 2.7.8 4 1-4.5 4.3-8.4 9.2-10-4 2.6-6.4 6-7.3 10 1 .1 1.5 0 2.3 0C16 20 20 14 20 4z"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M5 12h14"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5v10h14V11h-1"/></g></symbol>
+    <symbol id="i-thumb" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M7 10v10H4V10zM7 10l4-7c1.7 0 2.6 1.2 2.2 2.8L12.5 9H19a2 2 0 0 1 2 2.3l-1.2 6.8A2 2 0 0 1 17.8 20H7"/></symbol>
   </defs>
 </svg>
 
@@ -119,17 +127,168 @@
   <a href="/menu?cart=1" data-tab="cart" aria-label="Корзина"><svg class="ic" aria-hidden="true"><use href="#i-bag"/></svg><span>Корзина</span><b class="tab-badge" id="tabCount" hidden>0</b></a>
 </nav>
 
-<!-- Инструкция установки для iPhone -->
-<div class="overlay" id="iosInstall" hidden>
-  <div class="modal install-modal" role="dialog" aria-modal="true" aria-label="Как установить приложение">
-    <button class="icon-btn modal-close" onclick="this.closest('.overlay').hidden=true" aria-label="Закрыть"><svg class="ic"><use href="#i-close"/></svg></button>
-    <h3>Установить на iPhone</h3>
-    <p>Нажмите «Поделиться» внизу Safari и выберите «На экран „Домой“».</p>
+<!-- Плавающая корзина на мобильных -->
+<button class="mobile-cart" id="mobileCart" hidden>
+  <span><svg class="ic" aria-hidden="true"><use href="#i-cart"/></svg> <span id="mobileCount">0</span> в корзине</span>
+  <b id="mobileTotal">0 ₽</b>
+</button>
+
+<!-- Карточка блюда -->
+<div class="overlay" id="dishOverlay" hidden>
+  <div data-lenis-prevent class="modal dish-modal" role="dialog" aria-modal="true" aria-labelledby="dishName">
+    <button class="icon-btn modal-close" data-close aria-label="Закрыть"><svg class="ic"><use href="#i-close"/></svg></button>
+    <div class="dish-art" id="dishArt"></div>
+    <div class="dish-body">
+      <div class="dish-tags" id="dishTags"></div>
+      <h3 id="dishName"></h3>
+      <p class="muted" id="dishMeta"></p>
+      <p id="dishDesc"></p>
+      <div class="dish-actions">
+        <div class="stepper" aria-label="Количество">
+          <button class="icon-btn" id="dishMinus" aria-label="Меньше"><svg class="ic"><use href="#i-minus"/></svg></button>
+          <span id="dishQty" aria-live="polite">1</span>
+          <button class="icon-btn" id="dishPlus" aria-label="Больше"><svg class="ic"><use href="#i-plus"/></svg></button>
+        </div>
+        <button class="btn btn-primary btn-lg" id="dishAdd">Добавить</button>
+      </div>
+    </div>
   </div>
 </div>
-<script src="hours.js?v=32"></script>
-<script src="menu.js?v=32"></script>
-<script src="appshell.js?v=32"></script>
-<script src="pwa.js?v=32" defer></script>
+
+<!-- Корзина -->
+<div class="overlay overlay-drawer" id="cartOverlay" hidden>
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+    <div class="drawer-head">
+      <h3 id="cartTitle">Ваш заказ</h3>
+      <button class="icon-btn" data-close aria-label="Закрыть корзину"><svg class="ic"><use href="#i-close"/></svg></button>
+    </div>
+    <div class="drawer-body" id="cartBody" data-lenis-prevent></div>
+    <div class="drawer-foot" id="cartFoot"></div>
+  </aside>
+</div>
+
+<!-- Оформление заказа -->
+<div class="overlay" id="checkoutOverlay" hidden>
+  <div data-lenis-prevent class="modal checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+    <button class="icon-btn modal-close" data-close aria-label="Закрыть"><svg class="ic"><use href="#i-close"/></svg></button>
+    <div id="checkoutView">
+      <h3 id="checkoutTitle">Оформление заказа</h3>
+      <form id="checkoutForm" novalidate>
+        <div class="closed-note" id="closedNote" role="status" hidden></div>
+        <div class="seg" role="radiogroup" aria-label="Способ получения">
+          <label><input type="radio" name="method" value="delivery" checked><span>Доставка</span></label>
+          <label><input type="radio" name="method" value="pickup"><span>Самовывоз</span></label>
+        </div>
+
+        <div class="field" id="pointField" hidden>
+          <label for="fPoint" id="fPointLabel">Из какого ресторана доставить</label>
+          <select id="fPoint" name="point"></select>
+          <p class="field-hint" id="fPoint-hint"></p>
+          <p class="err" id="fPoint-err"></p>
+        </div>
+
+        <div class="field">
+          <label for="fName">Имя</label>
+          <input id="fName" name="name" autocomplete="given-name" required>
+          <p class="err" id="fName-err"></p>
+        </div>
+        <div class="field">
+          <label for="fPhone">Телефон</label>
+          <input id="fPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" required>
+          <p class="err" id="fPhone-err"></p>
+        </div>
+
+        <fieldset class="address-group" id="addressGroup">
+          <legend class="sr-only">Адрес доставки</legend>
+          <div class="field">
+            <label for="fStreet">Улица и дом</label>
+            <input id="fStreet" name="street" autocomplete="street-address" required>
+            <p class="err" id="fStreet-err"></p>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="fFlat">Квартира</label><input id="fFlat" name="flat"></div>
+            <div class="field"><label for="fEntrance">Подъезд</label><input id="fEntrance" name="entrance" inputmode="numeric"></div>
+            <div class="field"><label for="fFloor">Этаж</label><input id="fFloor" name="floor" inputmode="numeric"></div>
+          </div>
+        </fieldset>
+
+        <div class="field">
+          <label for="fTime">Когда</label>
+          <select id="fTime" name="time"></select>
+        </div>
+
+        <div class="field">
+          <span class="label">Оплата</span>
+          <div class="seg" role="radiogroup" aria-label="Способ оплаты">
+            <label><input type="radio" name="payment" value="card" checked><span>Картой при получении</span></label>
+            <label><input type="radio" name="payment" value="cash"><span>Наличными</span></label>
+          </div>
+        </div>
+        <div class="field" id="changeField" hidden>
+          <label for="fChange">С какой суммы подготовить сдачу</label>
+          <input id="fChange" name="change" inputmode="numeric" placeholder="Например, 2000">
+        </div>
+
+        <div class="field" id="promoField" hidden>
+          <label for="fPromo">Промокод</label>
+          <div class="promo-input">
+            <input id="fPromo" name="promo" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Если есть">
+            <button type="button" class="btn btn-glass" id="promoApply">Применить</button>
+          </div>
+          <p class="field-hint" id="fPromo-hint"></p>
+          <p class="err" id="fPromo-err"></p>
+        </div>
+
+        <div class="field">
+          <label for="fComment">Комментарий</label>
+          <textarea id="fComment" name="comment" rows="2" placeholder="Например: без кинзы, позвонить за 10 минут"></textarea>
+        </div>
+
+        <div class="summary" id="checkoutSummary"></div>
+
+        <label class="consent"><input type="checkbox" id="fConsent" required> <span>Даю <a href="/consent" target="_blank" rel="noopener">согласие на обработку персональных данных</a></span></label>
+        <p class="err" id="fConsent-err"></p>
+
+        <button type="submit" class="btn btn-primary btn-lg btn-block" id="submitBtn">Подтвердить заказ</button>
+        <p class="legal-note">Нажимая «Подтвердить заказ», вы соглашаетесь с <a href="/privacy" target="_blank" rel="noopener">политикой обработки персональных данных</a>.</p>
+        <p class="err submit-err" id="submitErr" role="alert"></p>
+      </form>
+    </div>
+    <div id="successView" hidden>
+      <div class="success">
+        <div class="success-icon"><svg class="ic"><use href="#i-check"/></svg></div>
+        <h3 tabindex="-1" id="successTitle">Заказ принят!</h3>
+        <p id="successText"></p>
+        <button class="btn btn-primary btn-lg" data-close>Отлично</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- Инструкция установки для iPhone -->
+<div class="overlay" id="iosInstall" hidden>
+  <div class="modal install-modal" role="dialog" aria-modal="true" aria-labelledby="iosTitle">
+    <button class="icon-btn modal-close" data-close aria-label="Закрыть"><svg class="ic"><use href="#i-close"/></svg></button>
+    <div class="install-head">
+      <span class="brand-mark big"><img src="/icons/icon-192.png" alt="" width="86" height="86"></span>
+      <h3 id="iosTitle">Установить Phở Việt</h3>
+      <p class="muted">Иконка появится на экране «Домой» — меню и заказ в пару касаний.</p>
+    </div>
+    <ol class="install-steps">
+      <li><span class="step-n">1</span><span>Нажмите <b>«Поделиться»</b> <svg class="ic" aria-hidden="true"><use href="#i-share"/></svg> внизу экрана Safari</span></li>
+      <li><span class="step-n">2</span><span>Выберите <b>«На экран „Домой“»</b></span></li>
+      <li><span class="step-n">3</span><span>Нажмите <b>«Добавить»</b></span></li>
+    </ol>
+    <button class="btn btn-primary btn-lg btn-block" data-close>Понятно</button>
+  </div>
+</div>
+<script src="hours.js?v=33"></script>
+<script src="menu.js?v=33"></script>
+<script src="coupons.js?v=33"></script>
+<script src="app.js?v=33"></script>
+<script src="appshell.js?v=33"></script>
+<script src="pwa.js?v=33" defer></script>
 </body>
 </html>

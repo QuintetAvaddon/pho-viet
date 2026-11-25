@@ -36,6 +36,26 @@
     setTimeout(hide, Math.max(0, t0 + 4200 - performance.now())); // медленная сеть — не держим заставку дольше
   }
 
+  /* ---------- iPhone в режиме приложения: нижняя панель у самого края экрана ---------- */
+  // Иногда iPhone считает окно приложения короче экрана на высоту строки состояния (или отдаёт лишний отступ
+  // снизу) — тогда панель вкладок «висит» над краем. Сверяем окно с экраном и опускаем панель на разницу.
+  function fixIosViewport() {
+    if (navigator.standalone !== true) return;
+    const portrait = innerHeight >= innerWidth;
+    const screenH = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
+    const gap = Math.round(screenH - innerHeight);
+    const probe = document.createElement("i");
+    probe.style.cssText = "position:fixed;left:0;bottom:0;width:1px;height:env(safe-area-inset-bottom);visibility:hidden;pointer-events:none";
+    document.body.append(probe);
+    const inset = probe.offsetHeight;
+    probe.remove();
+    root.style.setProperty("--vp-gap", (gap > 0 && gap < 90 ? gap : 0) + "px");
+    root.style.setProperty("--safe-b", Math.min(inset, portrait ? 34 : 21) + "px");
+  }
+  fixIosViewport();
+  addEventListener("resize", fixIosViewport);
+  addEventListener("pageshow", fixIosViewport);
+
   /* ---------- Часы работы и выбор ресторана ---------- */
   const locById = id => LOCS.find(l => l.id === id);
   const fmt = m => H ? H.fmt(m) : "";
@@ -70,6 +90,11 @@
 
   /* ---------- Нижний лист (выбор ресторана, подробности акции) ---------- */
   let sheetEl = null, lastFocus = null;
+  // фон под шторкой не прокручивается — без overflow:hidden у body (он перестраивает всю страницу)
+  const holdSheet = e => {
+    const sc = e.target.closest?.(".sheet");
+    if (!sc || sc.scrollHeight <= sc.clientHeight + 1) e.preventDefault();
+  };
   function openSheet(html, label) {
     closeSheet();
     lastFocus = document.activeElement;
@@ -80,7 +105,7 @@
       <button class="sheet-close" data-sheet-close aria-label="Закрыть"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
       ${html}</div>`;
     document.body.append(sheetEl);
-    document.body.style.overflow = "hidden";
+    document.addEventListener("touchmove", holdSheet, { passive: false });
     requestAnimationFrame(() => sheetEl && sheetEl.classList.add("open"));
     sheetEl.addEventListener("click", e => { if (e.target === sheetEl || e.target.closest("[data-sheet-close]")) closeSheet(); });
     $("button, a", $(".sheet", sheetEl))?.focus();
@@ -90,7 +115,7 @@
     const el = sheetEl; sheetEl = null;
     el.classList.remove("open");
     setTimeout(() => el.remove(), 280);
-    document.body.style.overflow = "";
+    document.removeEventListener("touchmove", holdSheet);
     lastFocus?.focus?.();
   }
   addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
