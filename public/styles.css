@@ -29,11 +29,11 @@
   --header-h: 76px;
   --ease: cubic-bezier(.2, .8, .2, 1);
   --ease-out: cubic-bezier(.16, 1, .3, 1);
-  --sky: url(/scene/paint/sky-p.webp);
-  --town: url(/scene/paint/town-p.webp);
-  --lan-1: url(/scene/paint/lantern-1.webp);
-  --lan-2: url(/scene/paint/lantern-2.webp);
-  --lan-3: url(/scene/paint/lantern-3.webp);
+  --sky: url(/scene/sky-p.webp);
+  --town: url(/scene/town-p.webp);
+  --lan-1: url(/scene/lantern-1.webp);
+  --lan-2: url(/scene/lantern-2.webp);
+  --lan-3: url(/scene/lantern-3.webp);
 }
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -251,18 +251,10 @@ body.has-pointer .cursor-glow { opacity: 1; }
 .scene { position: absolute; inset: 0; background: radial-gradient(120% 80% at 50% 0%, #2e1112 0%, #180b0c 45%, #110909 80%); }
 .layer { position: absolute; inset: 0; width: 100%; height: 100%; will-change: transform; }
 .stars { opacity: .9; }
-/* Сцена — картинки Higgsfield. Набор выбирает html[data-style] (paint — живопись, cine — кинореализм),
-   форму кадра — ориентация экрана; браузер скачивает только картинки, которые применились */
-[data-style="cine"] {
-  --sky: url(/scene/cine/sky-p.webp);
-  --town: url(/scene/cine/town-p.webp);
-  --lan-1: url(/scene/cine/lantern-1.webp);
-  --lan-2: url(/scene/cine/lantern-2.webp);
-  --lan-3: url(/scene/cine/lantern-3.webp);
-}
+/* Сцена — картинки Higgsfield (кинореализм). Кадр для телефона или компьютера выбирает ориентация экрана:
+   браузер скачивает только тот, что применился */
 @media (min-aspect-ratio: 1/1) {
-  :root { --sky: url(/scene/paint/sky-l.webp); --town: url(/scene/paint/town-l.webp); }
-  [data-style="cine"] { --sky: url(/scene/cine/sky-l.webp); --town: url(/scene/cine/town-l.webp); }
+  :root { --sky: url(/scene/sky-l.webp); --town: url(/scene/town-l.webp); }
 }
 /* небо чуть больше экрана, город шире: при параллаксе за мышью не открываются края */
 .sky { inset: -2%; width: auto; height: auto; background: var(--sky) 50% 35% / cover no-repeat; }

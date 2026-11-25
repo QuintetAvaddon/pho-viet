@@ -7,15 +7,11 @@
   (function () {
     var d = document.documentElement;
     d.style.setProperty("--svh", innerHeight / 100 + "px");
-    // Стиль сцены: живопись (по умолчанию) или кинореализм. ?style=cine|paint запоминается до закрытия вкладки
-    var q = new URLSearchParams(location.search).get("style"), s = "paint";
-    try { if (q === "cine" || q === "paint") sessionStorage.setItem("pv-style", q); s = sessionStorage.getItem("pv-style") || s; } catch (e) { if (q === "cine") s = q; }
-    d.setAttribute("data-style", s);
     // картинки первого экрана начинают качаться сразу, не дожидаясь стилей
     var f = matchMedia("(min-aspect-ratio: 1/1)").matches ? "l" : "p";
     ["sky", "town"].forEach(function (n) {
       var l = document.createElement("link");
-      l.rel = "preload"; l.as = "image"; l.href = "/scene/" + s + "/" + n + "-" + f + ".webp";
+      l.rel = "preload"; l.as = "image"; l.href = "/scene/" + n + "-" + f + ".webp";
       if (n === "sky") l.setAttribute("fetchpriority", "high");
       document.head.appendChild(l);
     });
@@ -58,7 +54,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=37">
+  <link rel="stylesheet" href="styles.css?v=38">
   <script>
     // При обновлении всегда начинаем с главного экрана, а не с места прошлой прокрутки
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -140,8 +136,8 @@
   <div class="hero-track" id="heroTrack">
   <section class="hero" id="hero" aria-labelledby="heroTitle">
     <div class="scene" id="scene">
-      <!-- Картинки Higgsfield: небо с луной и горами, город у реки, фонари. Набор (живопись или кинореализм)
-           и форму кадра выбирает styles.css по html[data-style] и ориентации экрана — качается только нужное -->
+      <!-- Картинки Higgsfield: небо с луной и горами, город у реки, фонари. Кадр для телефона или компьютера
+           выбирает styles.css по ориентации экрана — качается только нужный -->
       <div class="layer sky" data-depth="0.08" aria-hidden="true"></div>
       <div class="layer town" data-depth="0.3" aria-hidden="true"></div>
 
@@ -404,12 +400,12 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
-<script src="hours.js?v=37"></script>
-<script src="coupons.js?v=37"></script>
-<script src="menu.js?v=37"></script>
-<script src="common.js?v=37"></script>
-<script src="app.js?v=37"></script>
-<script src="pwa.js?v=37" defer></script>
-<script src="fx.js?v=37" defer></script>
+<script src="hours.js?v=38"></script>
+<script src="coupons.js?v=38"></script>
+<script src="menu.js?v=38"></script>
+<script src="common.js?v=38"></script>
+<script src="app.js?v=38"></script>
+<script src="pwa.js?v=38" defer></script>
+<script src="fx.js?v=38" defer></script>
 </body>
 </html>
