@@ -10,7 +10,7 @@
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const rub = n => Number(n).toLocaleString("ru-RU") + " ₽";
   const root = document.documentElement;
-  const page = document.body.dataset.page || "";
+  let page = document.body.dataset.page || "menu";
   const demo = /(^|[?&])demo=1(&|$)/.test(location.search);
   const LOCS = Array.isArray(CFG.locations) ? CFG.locations : [];
   const CUTOFF = CFG.orderCutoffMin ?? 30;
@@ -36,25 +36,24 @@
     setTimeout(hide, Math.max(0, t0 + 4200 - performance.now())); // медленная сеть — не держим заставку дольше
   }
 
-  /* ---------- iPhone в режиме приложения: нижняя панель у самого края экрана ---------- */
-  // Иногда iPhone считает окно приложения короче экрана на высоту строки состояния (или отдаёт лишний отступ
-  // снизу) — тогда панель вкладок «висит» над краем. Сверяем окно с экраном и опускаем панель на разницу.
-  function fixIosViewport() {
+  /* ---------- iPhone в режиме приложения: окно короче экрана ---------- */
+  // На некоторых iPhone (прозрачная строка состояния) окно сайта заканчивается выше низа экрана на высоту строки
+  // состояния: ниже окна рисовать нельзя. Тогда панель — у самого низа окна, без отступа под полоску «домой».
+  function checkIosShort() {
     if (navigator.standalone !== true) return;
+    const probe = document.createElement("i");
+    probe.style.cssText = "position:fixed;left:0;top:0;width:1px;height:env(safe-area-inset-top);visibility:hidden;pointer-events:none";
+    document.body.append(probe);
+    const top = probe.offsetHeight;
+    probe.remove();
     const portrait = innerHeight >= innerWidth;
     const screenH = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
-    const gap = Math.round(screenH - innerHeight);
-    const probe = document.createElement("i");
-    probe.style.cssText = "position:fixed;left:0;bottom:0;width:1px;height:env(safe-area-inset-bottom);visibility:hidden;pointer-events:none";
-    document.body.append(probe);
-    const inset = probe.offsetHeight;
-    probe.remove();
-    root.style.setProperty("--vp-gap", (gap > 0 && gap < 90 ? gap : 0) + "px");
-    root.style.setProperty("--safe-b", Math.min(inset, portrait ? 34 : 21) + "px");
+    const gap = screenH - innerHeight;
+    root.classList.toggle("ios-short", top > 0 && gap > 8 && Math.abs(gap - top) <= 4);
   }
-  fixIosViewport();
-  addEventListener("resize", fixIosViewport);
-  addEventListener("pageshow", fixIosViewport);
+  checkIosShort();
+  addEventListener("resize", checkIosShort);
+  addEventListener("pageshow", checkIosShort);
 
   /* ---------- Часы работы и выбор ресторана ---------- */
   const locById = id => LOCS.find(l => l.id === id);
@@ -162,11 +161,7 @@
   /* ---------- Нижняя панель вкладок ---------- */
   const tabbar = $(".tabbar");
   if (tabbar) {
-    $$("[data-tab]", tabbar).forEach(a => {
-      const on = a.dataset.tab === page;
-      a.classList.toggle("is-active", on);
-      if (on) a.setAttribute("aria-current", "page");
-    });
+    markTab(page);
     const cartCount = () => {
       try { return Object.values(JSON.parse(localStorage.getItem(CART_KEY)) || {}).reduce((a, b) => a + b, 0); } catch { return 0; }
     };
@@ -196,6 +191,64 @@
         ticking = false;
       });
     }, { passive: true });
+  }
+
+  function markTab(v) {
+    $$(".tabbar [data-tab]").forEach(a => {
+      const on = a.dataset.tab === v;
+      a.classList.toggle("is-active", on);
+      if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+  }
+
+  /* ---------- Вкладки без перезагрузки: главная, меню и акции — на одной странице ---------- */
+  // Нажатие на вкладку только показывает нужный раздел (страница не загружается заново), адрес меняется,
+  // кнопка «назад» работает, у каждой вкладки своё место прокрутки.
+  const VIEWS = { "/app": "app", "/menu": "menu", "/promo": "promo" };
+  const TITLES = { app: "Phở Việt — приложение", menu: "Меню — Phở Việt, вьетнамская кухня", promo: "Акции и купоны — Phở Việt" };
+  const spa = !!$(".view[data-view]");
+  const scrollMem = {};
+  function showView(v, push = true) {
+    if (!spa || !$(`.view[data-view="${v}"]`)) return false;
+    closeSheet();
+    if (v === page) { if (push) scrollTo({ top: 0, behavior: "smooth" }); return true; } // повторное нажатие — наверх
+    scrollMem[page] = scrollY;
+    page = v;
+    const isMenu = v === "menu";
+    document.body.dataset.page = v;
+    root.classList.toggle("page-menu", isMenu);
+    document.body.classList.toggle("page-menu", isMenu);
+    root.classList.remove("tabbar-hidden", "search-open");
+    markTab(v);
+    document.title = TITLES[v];
+    if (push) history.pushState({ view: v }, "", "/" + v);
+    scrollTo(0, scrollMem[v] || 0);
+    document.dispatchEvent(new CustomEvent("view:change", { detail: v }));
+    return true;
+  }
+  function go(href) {
+    const u = new URL(href, location.href);
+    const v = u.origin === location.origin && VIEWS[u.pathname.replace(/\.html$/, "")];
+    if (!spa || !v) { location.href = href; return; }
+    if (u.searchParams.get("cart") && window.PV?.openCart) { window.PV.openCart(); return; }
+    showView(v);
+    const dish = u.searchParams.get("dish");
+    if (dish) window.PV?.openDish?.(dish);
+  }
+  if (spa) {
+    history.scrollRestoration = "manual";
+    history.replaceState({ view: page }, "", location.href);
+    addEventListener("popstate", e => { const v = (e.state && e.state.view) || VIEWS[location.pathname]; if (v) showView(v, false); });
+    document.addEventListener("click", e => {
+      if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = e.target.closest("a[href]");
+      if (!a || a.target || a.hasAttribute("download")) return;
+      const u = new URL(a.href, location.href);
+      if (u.origin !== location.origin || !VIEWS[u.pathname]) return;
+      if (u.hash && u.pathname === location.pathname) return; // якорь внутри вкладки
+      e.preventDefault();
+      go(a.href);
+    });
   }
 
   /* ---------- Акции и купоны ---------- */
@@ -238,8 +291,8 @@
     if (!c) return;
     const p = promos.find(x => x.id === c.dataset.promo) || EXTRA.find(x => x.id === c.dataset.promo);
     if (!p) return;
-    if (p.href && !p.title) { location.href = p.href; return; }
-    if (p.link) { location.href = p.link; return; }
+    if (p.href && !p.title) { go(p.href); return; }
+    if (p.link) { go(p.link); return; }
     openPromo(p);
   });
 
@@ -284,7 +337,7 @@
     rail.addEventListener("scroll", () => requestAnimationFrame(syncDots), { passive: true });
     // баннеры листаются сами, пока гость их не трогает
     let auto = setInterval(() => {
-      if (document.hidden || !banners.length) return;
+      if (document.hidden || !banners.length || page !== "app") return; // крутим только на открытой главной
       const w = rail.firstElementChild.offsetWidth + 12, max = rail.scrollWidth - rail.clientWidth;
       rail.scrollTo({ left: rail.scrollLeft + w > max + 4 ? 0 : rail.scrollLeft + w, behavior: "smooth" });
     }, 5000);
@@ -307,7 +360,7 @@
     $("#homeLocs").addEventListener("click", e => {
       const b = e.target.closest("[data-choose]"); if (!b) return;
       setPoint(b.dataset.choose);
-      location.href = "/menu";
+      go("/menu");
     });
     $("#homeHours").textContent = `Заказы на сайте ${orderHours()}. ${CFG.hours || ""}`;
 

@@ -23,7 +23,7 @@
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Phở Việt">
   <link rel="apple-touch-startup-image" media="screen and (device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/icons/splash/launch-1320x2868.png">
   <link rel="apple-touch-startup-image" media="screen and (device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/icons/splash/launch-1206x2622.png">
@@ -40,7 +40,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=33">
+  <link rel="stylesheet" href="styles.css?v=34">
 </head>
 <body class="page-menu app-page" data-page="menu">
 <div class="splash" id="splash" aria-hidden="true">
@@ -56,7 +56,10 @@
   </div>
 </div>
 <script>(function(){var s=document.getElementById("splash"),d=document.documentElement;try{var n=performance.getEntriesByType("navigation")[0],r=n&&n.type==="reload";if(sessionStorage.getItem("pv_splash")&&!r){s.remove();return}sessionStorage.setItem("pv_splash","1");window.__splashT0=performance.now();if(navigator.standalone||matchMedia("(display-mode: standalone)").matches)d.classList.add("splash-launch")}catch(e){s.remove()}})();</script>
-<script>document.documentElement.classList.add("page-menu")</script>
+<script>/* какая вкладка открыта: /app — главная, /promo — акции, иначе меню (до отрисовки, без мигания) */
+(function(){var p=location.pathname.replace(/\.html$/,""),v=p==="/app"?"app":p==="/promo"?"promo":"menu",b=document.body,d=document.documentElement;
+b.dataset.page=v;d.classList.toggle("page-menu",v==="menu");b.classList.toggle("page-menu",v==="menu");
+document.title={app:"Phở Việt — приложение",promo:"Акции и купоны — Phở Việt",menu:"Меню — Phở Việt, вьетнамская кухня"}[v]})();</script>
 
 <!-- SVG-иконки и иллюстрации -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -169,10 +172,12 @@
 <a class="skip-link" href="#menuSections">Перейти к блюдам</a>
 <div class="grain" aria-hidden="true"></div>
 
+<!-- Вкладка «Меню» (на компьютере — обычная страница меню) -->
+<div class="view" data-view="menu">
 <header class="site-header scrolled" id="top">
   <div class="header-inner">
     <a href="/" class="brand" aria-label="Phở Việt — на главную">
-      <span class="brand-mark"><img src="logo.png" alt="" width="40" height="39"></span>
+      <span class="brand-mark"><img src="/icons/logo-176.png" alt="" width="40" height="39"></span>
       <span class="brand-text"><span class="brand-name">Phở Việt</span><span class="brand-sub">вьетнамская кухня</span></span>
     </a>
     <nav class="main-nav" aria-label="Основная навигация">
@@ -228,7 +233,7 @@
 <footer class="site-footer site-footer-compact" id="contacts">
   <div class="container footer-inner">
     <div class="footer-brand">
-      <span class="brand-mark big"><img src="logo.png" alt="Phở Việt" width="88" height="85"></span>
+      <span class="brand-mark big"><img src="/icons/logo-176.png" alt="Phở Việt" width="88" height="85"></span>
       <p>Phở Việt — вьетнамская кухня</p>
       <button class="btn btn-glass js-install" hidden><svg class="ic" aria-hidden="true"><use href="#i-app"/></svg>Установить приложение</button>
     </div>
@@ -241,6 +246,70 @@
   </div>
   <p class="container copyright">© <span id="year"></span> Phở Việt · <a href="/jobs">Работа у нас</a> · <a href="/privacy">Политика обработки персональных данных</a></p>
 </footer>
+</div>
+
+<!-- Вкладка «Главная» приложения -->
+<div class="view" data-view="app">
+<header class="app-top">
+  <a class="app-brand" href="/" aria-label="Phở Việt — сайт ресторана">
+    <span class="app-logo"><img src="/icons/logo-176.png" alt="" width="44" height="42"></span>
+    <span><b>Phở Việt</b><small>вьетнамская кухня</small></span>
+  </a>
+  <a class="round-btn js-tel" href="#" aria-label="Позвонить"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg></a>
+</header>
+
+<main class="app-main" id="appHome">
+  <section class="home-rail" aria-label="Акции и новости">
+    <div class="promo-rail" id="homeRail"></div>
+    <div class="rail-dots" id="homeDots" aria-hidden="true"></div>
+  </section>
+
+  <section class="home-rating" id="homeRating" aria-label="Оценка гостей"></section>
+  <section class="home-stats" id="homeStats" aria-label="Коротко о нас"></section>
+
+  <a class="home-cta" href="/menu">
+    <span><b>Открыть меню</b><small>Фо, нем, вок, бань бао — доставка и самовывоз</small></span>
+    <svg class="ic" aria-hidden="true"><use href="#i-right"/></svg>
+  </a>
+
+  <section class="home-block" aria-labelledby="hLocs">
+    <h2 id="hLocs">Наши рестораны</h2>
+    <p class="home-note" id="homeHours"></p>
+    <div class="loc-list" id="homeLocs"></div>
+  </section>
+
+  <section class="home-block" aria-labelledby="hHits">
+    <div class="home-head"><h2 id="hHits">Хиты</h2><a href="/menu">Всё меню</a></div>
+    <div class="hits-rail" id="homeHits"></div>
+  </section>
+
+  <section class="home-block home-links" aria-label="Полезное">
+    <a href="/promo"><svg class="ic" aria-hidden="true"><use href="#i-percent"/></svg><span><b>Акции и купоны</b><small>скидки и мероприятия</small></span></a>
+    <a href="/jobs"><svg class="ic" aria-hidden="true"><use href="#i-work"/></svg><span><b>Работа у нас</b><small>оставить заявку</small></span></a>
+    <a class="js-tel" href="#"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span><b>Позвонить</b><small class="js-phone-text"></small></span></a>
+    <a href="/"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg><span><b>О нас</b><small>история и как готовим фо</small></span></a>
+    <button class="js-install" hidden><svg class="ic" aria-hidden="true"><use href="#i-app"/></svg><span><b>Установить приложение</b><small>иконка на экране телефона</small></span></button>
+  </section>
+
+  <p class="app-foot">© Phở Việt · <a href="/privacy">Политика обработки персональных данных</a></p>
+</main>
+</div>
+
+<!-- Вкладка «Акции» -->
+<div class="view" data-view="promo">
+<header class="app-top app-top-center">
+  <a class="round-btn" href="/app" aria-label="На главную"><svg class="ic" aria-hidden="true" style="transform:scaleX(-1)"><use href="#i-right"/></svg></a>
+  <h1>Акции</h1>
+  <span class="round-btn is-ghost" aria-hidden="true"></span>
+</header>
+
+<main class="app-main">
+  <div class="promo-tabs" id="promoTabs" role="tablist" aria-label="Виды акций"></div>
+  <p class="promo-demo-note" id="promoDemoNote" hidden>Режим примеров: карточки с пометкой «пример» видите только вы — гостям они не показываются.</p>
+  <div class="promo-list" id="promoList"></div>
+  <p class="promo-empty" id="promoEmpty" hidden>Сейчас акций нет — загляните позже.</p>
+</main>
+</div>
 
 <!-- Нижняя панель вкладок (телефон) -->
 <nav class="tabbar" aria-label="Разделы приложения">
@@ -408,11 +477,11 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="hours.js?v=33"></script>
-<script src="coupons.js?v=33"></script>
-<script src="menu.js?v=33"></script>
-<script src="app.js?v=33"></script>
-<script src="appshell.js?v=33"></script>
-<script src="pwa.js?v=33" defer></script>
+<script src="hours.js?v=34"></script>
+<script src="coupons.js?v=34"></script>
+<script src="menu.js?v=34"></script>
+<script src="app.js?v=34"></script>
+<script src="appshell.js?v=34"></script>
+<script src="pwa.js?v=34" defer></script>
 </body>
 </html>

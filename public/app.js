@@ -613,7 +613,7 @@
     sync();
   }
 
-  window.PV = { openOverlay, toast, openCart: () => openOverlay($("#cartOverlay")) };
+  window.PV = { openOverlay, toast, openCart: () => openOverlay($("#cartOverlay")), openDish: id => BY_ID[id] && openDish(id) };
   {
     const qs = new URLSearchParams(location.search);
     const later = fn => setTimeout(fn, document.getElementById("splash") ? 2600 : 250);

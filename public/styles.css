@@ -1320,14 +1320,14 @@ body.app-page:not(.page-menu) { background: var(--bg); }
    Нижняя панель вкладок — ниже, у самого края экрана (над полоской «домой» на iPhone)
    ========================================================= */
 @media (max-width: 720px) {
-  .tabbar { bottom: calc(max(8px, var(--safe-b, env(safe-area-inset-bottom)) - 12px) - var(--vp-gap, 0px)); height: 64px; }
+  .tabbar { bottom: max(8px, calc(env(safe-area-inset-bottom) - 12px)); height: 64px; }
   .tabbar a { width: 52px; height: 52px; }
   .tabbar .ic { width: 26px; height: 26px; }
   .tab-badge { top: 3px; right: 1px; }
   .tab-badge.bump { animation: bump .45s var(--ease-out); }
   body.app-page { padding-bottom: calc(84px + max(8px, env(safe-area-inset-bottom) - 12px)); }
-  body.app-page .toast { bottom: calc(84px + max(8px, var(--safe-b, env(safe-area-inset-bottom)) - 12px) - var(--vp-gap, 0px)); }
-  body.app-page .mobile-cart { bottom: calc(max(10px, var(--safe-b, env(safe-area-inset-bottom)) - 10px) - var(--vp-gap, 0px)); }
+  body.app-page .toast { bottom: calc(84px + max(8px, env(safe-area-inset-bottom) - 12px)); }
+  body.app-page .mobile-cart { bottom: max(10px, calc(env(safe-area-inset-bottom) - 10px)); }
 }
 
 /* =========================================================
@@ -1437,7 +1437,6 @@ html.fx-touch .assemble.is-near .asm-b-brothtop { will-change: transform, opacit
 /* =========================================================
    Окна плавно появляются и плавно закрываются; на телефоне корзина и окна — шторка снизу
    ========================================================= */
-.overlay { bottom: calc(-1 * var(--vp-gap, 0px)); }
 .overlay.is-closing { animation: fadeOut .3s ease forwards; pointer-events: none; }
 @keyframes fadeOut { to { opacity: 0; } }
 .overlay.is-closing .modal { animation: sinkOut .3s ease forwards; }
@@ -1457,7 +1456,7 @@ html.fx-touch .assemble.is-near .asm-b-brothtop { will-change: transform, opacit
   }
   .drawer::before { content: ""; display: block; flex: none; width: 42px; height: 5px; margin: 8px auto 0; border-radius: 3px; background: rgba(244, 238, 228, .25); }
   .drawer-head { padding-top: 10px; }
-  .drawer-foot { padding-bottom: max(22px, var(--safe-b, env(safe-area-inset-bottom))); }
+  .drawer-foot { padding-bottom: max(22px, env(safe-area-inset-bottom)); }
   .overlay.is-closing .drawer { animation: sheetDown .3s cubic-bezier(.4, 0, 1, 1) forwards; }
   .overlay:not(.overlay-drawer) .modal { animation: sheetUp .48s cubic-bezier(.22, 1, .36, 1) both; }
   .overlay.is-closing:not(.overlay-drawer) .modal { animation: sheetDown .3s cubic-bezier(.4, 0, 1, 1) forwards; }
@@ -1466,4 +1465,20 @@ html.fx-touch .assemble.is-near .asm-b-brothtop { will-change: transform, opacit
 }
 @media (prefers-reduced-motion: reduce) {
   .overlay, .overlay .drawer, .overlay .modal { animation-duration: .01s !important; }
+}
+
+/* =========================================================
+   Вкладки приложения на одной странице (menu.html): видна только активная, переключение мгновенное
+   ========================================================= */
+.view { display: contents; }
+body[data-page="menu"] .view:not([data-view="menu"]),
+body[data-page="app"] .view:not([data-view="app"]),
+body[data-page="promo"] .view:not([data-view="promo"]) { display: none; }
+
+/* iPhone с «коротким» окном (appshell.js): панель и кнопки — у самого низа окна, ниже рисовать нельзя */
+@media (max-width: 720px) {
+  html.ios-short .tabbar { bottom: 8px; }
+  html.ios-short body.app-page .mobile-cart { bottom: 10px; }
+  html.ios-short body.app-page .toast { bottom: 92px; }
+  html.ios-short .drawer-foot, html.ios-short.is-app .drawer-foot, html.ios-short.is-app .checkout-modal { padding-bottom: 22px; }
 }

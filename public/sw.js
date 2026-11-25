@@ -1,10 +1,10 @@
 /* Service worker: приложение открывается быстро и работает при плохом интернете.
    При изменении файлов сайта увеличьте VERSION, чтобы у всех обновился кэш. */
-const VERSION = "pv-v33";
+const VERSION = "pv-v34";
 const SHELL = [
   "/", "/menu", "/app", "/promo",
-  "/styles.css?v=33", "/app.js?v=33", "/menu.js?v=33", "/hours.js?v=33", "/coupons.js?v=33", "/appshell.js?v=33", "/fx.js?v=33", "/pwa.js?v=33",
-  "/logo.png", "/manifest.webmanifest",
+  "/styles.css?v=34", "/app.js?v=34", "/menu.js?v=34", "/hours.js?v=34", "/coupons.js?v=34", "/appshell.js?v=34", "/fx.js?v=34", "/pwa.js?v=34",
+  "/icons/logo-176.png", "/manifest.webmanifest",
   "/icons/icon-192.png", "/icons/apple-touch-icon.png"
 ];
 
@@ -50,7 +50,12 @@ self.addEventListener("fetch", e => {
     return;
   }
 
-  // Свои стили и скрипты: сначала сеть (правки доходят сразу), без сети — из кэша
+  // Свои стили и скрипты с номером версии (?v=N) не меняются — отдаём сразу из кэша, без ожидания сети
+  if (url.origin === location.origin && url.searchParams.has("v")) {
+    e.respondWith(caches.match(req).then(r => r || fetch(req).then(res => put(req, res))));
+    return;
+  }
+  // Остальные свои файлы: сначала сеть (правки доходят сразу), без сети — из кэша
   if (url.origin === location.origin) {
     e.respondWith(fetch(req).then(res => put(req, res)).catch(() => caches.match(req, { ignoreSearch: true })));
     return;

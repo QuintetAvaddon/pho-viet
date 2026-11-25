@@ -365,6 +365,8 @@ async function setupWebhook() {
 
 function serveStatic(req, res) {
   let urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
+  // вкладки приложения — одна страница: главная (/app), меню (/menu) и акции (/promo) переключаются без загрузки
+  if (urlPath === "/app" || urlPath === "/promo") urlPath = "/menu";
   if (urlPath.endsWith("/")) urlPath += "index.html";
   if (!path.extname(urlPath)) urlPath += ".html"; // /menu -> menu.html
   const file = path.normalize(path.join(PUBLIC_DIR, urlPath));
