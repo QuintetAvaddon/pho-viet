@@ -58,7 +58,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=40">
+  <link rel="stylesheet" href="styles.css?v=41">
   <script>
     // При обновлении всегда начинаем с главного экрана, а не с места прошлой прокрутки
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -244,67 +244,104 @@
     </div>
   </section>
 
-  <!-- ============ ГЛАВЫ (горизонтальная прокрутка) ============ -->
-  <section class="story" id="story" aria-labelledby="storyTitle">
-    <div class="story-pin">
-      <div class="story-head">
-        <p class="chapter-label"><span class="dash"></span>Глава 03 — Ритуал</p>
-        <div class="story-head-row">
+  <!-- ============ ГЛАВА 3: РИТУАЛ — большой кадр шага и два следующих (картинки Higgsfield) ============ -->
+  <!-- В кадрах процесс, а не блюда: котёл с бульоном, вок, травы, курьер. Готовые блюда на сайте — только настоящие фото.
+       Кадры шагов лежат друг на друге: большой кадр следующего шага fx.js качает заранее, остальные — когда понадобятся -->
+  <section class="ritual" id="story" aria-labelledby="storyTitle">
+    <div class="container">
+      <div class="rt-head">
+        <div>
+          <p class="chapter-label"><span class="dash"></span>Глава 03 — Ритуал</p>
           <h2 id="storyTitle">Четыре шага. Двенадцать часов.<br><span class="accent">Одна идеальная чаша.</span></h2>
-          <div class="slider-arrows" id="storyArrows">
-            <button class="icon-btn arrow" id="storyPrev" aria-label="Предыдущий шаг" aria-controls="storyTrack"><svg class="ic" aria-hidden="true"><use href="#i-left"/></svg></button>
-            <button class="icon-btn arrow" id="storyNext" aria-label="Следующий шаг" aria-controls="storyTrack"><svg class="ic" aria-hidden="true"><use href="#i-right"/></svg></button>
-          </div>
+        </div>
+        <div class="rt-tabs" role="tablist" aria-label="Шаги ритуала">
+          <button class="rt-tab" type="button" role="tab" id="rtTab1" aria-controls="rtStep1" aria-selected="true">Бульон</button>
+          <button class="rt-tab" type="button" role="tab" id="rtTab2" aria-controls="rtStep2" aria-selected="false" tabindex="-1">Вок</button>
+          <button class="rt-tab" type="button" role="tab" id="rtTab3" aria-controls="rtStep3" aria-selected="false" tabindex="-1">Травы</button>
+          <button class="rt-tab" type="button" role="tab" id="rtTab4" aria-controls="rtStep4" aria-selected="false" tabindex="-1">Доставка</button>
         </div>
       </div>
-      <div class="story-track" id="storyTrack">
-        <article class="panel" style="--glow:#b03030">
-          <div class="panel-photo">
-            <img src="images/pho-bo.jpg" alt="Фо Бо — прозрачный говяжий бульон с рисовой лапшой" loading="lazy" decoding="async" width="600" height="600">
-            <span class="steam s1"></span><span class="steam s2"></span><span class="steam s3"></span>
-            <span class="panel-step">Шаг 01</span>
+
+      <div class="rt-grid is-paused" id="rtGrid">
+        <div class="rt-moon" aria-hidden="true"><img src="/scene/ritual/moon.webp" alt="" width="747" height="757" loading="lazy" decoding="async"></div>
+
+        <div class="rt-stage" id="rtStage">
+          <article class="rt-step is-active" id="rtStep1" role="tabpanel" aria-labelledby="rtTab1">
+            <img class="rt-img" src="/scene/ritual/broth-l.webp" srcset="/scene/ritual/broth-m.webp 800w, /scene/ritual/broth-l.webp 1600w" sizes="(max-width: 720px) 175vw, (max-width: 1100px) 64vw, 820px" alt="" width="1600" height="1062" loading="lazy" decoding="async">
+            <div class="rt-cap">
+              <span class="rt-n">Шаг 01</span>
+              <h3>Бульон</h3>
+              <p>Кости томятся на медленном огне всю ночь. Жжёный лук и имбирь, бадьян, корица, кардамон — до прозрачного янтаря.</p>
+            </div>
+          </article>
+          <article class="rt-step" id="rtStep2" role="tabpanel" aria-labelledby="rtTab2">
+            <img class="rt-img" data-src="/scene/ritual/wok-l.webp" data-srcset="/scene/ritual/wok-m.webp 800w, /scene/ritual/wok-l.webp 1600w" sizes="(max-width: 720px) 175vw, (max-width: 1100px) 64vw, 820px" alt="" width="1600" height="1062" decoding="async">
+            <div class="rt-cap">
+              <span class="rt-n">Шаг 02</span>
+              <h3>Лапша и вок</h3>
+              <p>Широкая рисовая лапша фо, стеклянная миен, пшеничная ми — обжариваем в раскалённом воке за секунды до подачи.</p>
+            </div>
+          </article>
+          <article class="rt-step" id="rtStep3" role="tabpanel" aria-labelledby="rtTab3">
+            <img class="rt-img" data-src="/scene/ritual/herbs-l.webp" data-srcset="/scene/ritual/herbs-m.webp 800w, /scene/ritual/herbs-l.webp 1600w" sizes="(max-width: 720px) 175vw, (max-width: 1100px) 64vw, 820px" alt="" width="1600" height="1062" decoding="async">
+            <div class="rt-cap">
+              <span class="rt-n">Шаг 03</span>
+              <h3>Травы</h3>
+              <p>Кинза, мята, зелёный лук, ростки сои, лайм и свежий чили. Без них фо — просто суп.</p>
+            </div>
+          </article>
+          <article class="rt-step" id="rtStep4" role="tabpanel" aria-labelledby="rtTab4">
+            <img class="rt-img" data-src="/scene/ritual/door-l.webp" data-srcset="/scene/ritual/door-m.webp 800w, /scene/ritual/door-l.webp 1600w" sizes="(max-width: 720px) 175vw, (max-width: 1100px) 64vw, 820px" alt="" width="1600" height="1062" decoding="async">
+            <div class="rt-cap">
+              <span class="rt-n">Шаг 04</span>
+              <h3>К вашей двери</h3>
+              <p>Упаковываем бульон отдельно, чтобы лапша не размокла. Горячим — за 30–60 минут, бесплатно от <span class="js-free">600 ₽</span>.</p>
+            </div>
+          </article>
+
+          <a class="rt-menu" href="/menu">Меню <svg class="ic" aria-hidden="true"><use href="#i-right"/></svg></a>
+          <div class="rt-meta">
+            <span class="rt-count" aria-hidden="true"><b id="rtNum">01</b> / 04</span>
+            <span class="rt-dots" id="rtDots" aria-hidden="true"><i class="is-on"><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i></span>
+            <button class="rt-play" id="rtPlay" type="button" aria-label="Пауза">
+              <svg class="i-pause" viewBox="0 0 12 12" aria-hidden="true"><path fill="currentColor" d="M2.5 1.5h2.4v9H2.5zM7.1 1.5h2.4v9H7.1z"/></svg>
+              <svg class="i-play" viewBox="0 0 12 12" aria-hidden="true"><path fill="currentColor" d="M3 1.3v9.4L10.4 6z"/></svg>
+            </button>
           </div>
-          <div class="panel-body">
-            <span class="panel-num" aria-hidden="true">01</span>
-            <h3>Бульон</h3>
-            <p>Кости томятся на медленном огне всю ночь. Жжёный лук и имбирь, бадьян, корица, кардамон — до прозрачного янтаря.</p>
-          </div>
-        </article>
-        <article class="panel" style="--glow:#F2A541">
-          <div class="panel-photo">
-            <img src="images/pho-sao-bo.jpg" alt="Фо сао бо — рисовая лапша, обжаренная в воке с говядиной" loading="lazy" decoding="async" width="600" height="600">
-            <span class="panel-step">Шаг 02</span>
-          </div>
-          <div class="panel-body">
-            <span class="panel-num" aria-hidden="true">02</span>
-            <h3>Лапша и вок</h3>
-            <p>Широкая рисовая лапша фо, стеклянная миен, пшеничная ми — обжариваем в раскалённом воке за секунды до подачи.</p>
-          </div>
-        </article>
-        <article class="panel" style="--glow:#8DB052">
-          <div class="panel-photo">
-            <img src="images/bun-bo-nam-bo.jpg" alt="Бун Бо Нам Бо со свежей мятой, кинзой и огурцом" loading="lazy" decoding="async" width="600" height="600">
-            <span class="panel-step">Шаг 03</span>
-          </div>
-          <div class="panel-body">
-            <span class="panel-num" aria-hidden="true">03</span>
-            <h3>Травы</h3>
-            <p>Кинза, мята, зелёный лук, ростки сои, лайм и свежий чили. Без них фо — просто суп.</p>
-          </div>
-        </article>
-        <article class="panel" style="--glow:#c9544c">
-          <div class="panel-photo">
-            <img src="images/combo-soup.jpg" alt="Фо с ростками сои, лаймом и вьетнамским напитком" loading="lazy" decoding="async" width="600" height="600">
-            <span class="panel-step">Шаг 04</span>
-          </div>
-          <div class="panel-body">
-            <span class="panel-num" aria-hidden="true">04</span>
-            <h3>К вашей двери</h3>
-            <p>Упаковываем бульон отдельно, чтобы лапша не размокла. Горячим — за 30–60 минут, бесплатно от 600 ₽.</p>
-          </div>
-        </article>
+        </div>
+
+        <!-- Два следующих шага: картинки и подписи меняет fx.js -->
+        <button class="rt-side" type="button" data-go="1" aria-label="Шаг 02: Лапша и вок">
+          <img src="/scene/ritual/broth-m.webp" alt="" width="800" height="531" loading="lazy" decoding="async">
+          <img class="is-on" src="/scene/ritual/wok-m.webp" alt="" width="800" height="531" loading="lazy" decoding="async">
+          <img src="/scene/ritual/herbs-m.webp" alt="" width="800" height="531" loading="lazy" decoding="async">
+          <img src="/scene/ritual/door-m.webp" alt="" width="800" height="531" loading="lazy" decoding="async">
+          <span class="rt-side-cap"><span><span class="rt-side-n">Шаг 02</span><span class="rt-side-t">Лапша и вок</span></span><span class="rt-side-arrow"><svg class="ic" aria-hidden="true"><use href="#i-right"/></svg></span></span>
+        </button>
+        <button class="rt-side" type="button" data-go="2" aria-label="Шаг 03: Травы">
+          <img src="/scene/ritual/broth-m.webp" alt="" width="800" height="531" loading="lazy" decoding="async">
+          <img src="/scene/ritual/wok-m.webp" alt="" width="800" height="531" loading="lazy" decoding="async">
+          <img class="is-on" src="/scene/ritual/herbs-m.webp" alt="" width="800" height="531" loading="lazy" decoding="async">
+          <img src="/scene/ritual/door-m.webp" alt="" width="800" height="531" loading="lazy" decoding="async">
+          <span class="rt-side-cap"><span><span class="rt-side-n">Шаг 03</span><span class="rt-side-t">Травы</span></span><span class="rt-side-arrow"><svg class="ic" aria-hidden="true"><use href="#i-right"/></svg></span></span>
+        </button>
+
+        <!-- Передний план поверх рамок: ветка персика с фонарём (сверху слева), куст цветов и лепестки (снизу справа) -->
+        <div class="rt-branch" aria-hidden="true">
+          <picture>
+            <source type="image/avif" srcset="/scene/ritual/branch-s.avif 600w, /scene/ritual/branch.avif 1200w" sizes="(max-width: 720px) 66vw, (max-width: 1280px) 40vw, 490px">
+            <img src="/scene/ritual/branch.webp" srcset="/scene/ritual/branch-s.webp 600w, /scene/ritual/branch.webp 1200w" sizes="(max-width: 720px) 66vw, (max-width: 1280px) 40vw, 490px" alt="" width="1200" height="1005" loading="lazy" decoding="async">
+          </picture>
+          <i class="rt-glow"></i>
+        </div>
+        <div class="rt-bloom" aria-hidden="true">
+          <picture>
+            <source type="image/avif" srcset="/scene/ritual/bloom-s.avif 400w, /scene/ritual/bloom.avif 800w" sizes="(max-width: 720px) 42vw, (max-width: 1280px) 25vw, 310px">
+            <img src="/scene/ritual/bloom.webp" srcset="/scene/ritual/bloom-s.webp 400w, /scene/ritual/bloom.webp 800w" sizes="(max-width: 720px) 42vw, (max-width: 1280px) 25vw, 310px" alt="" width="800" height="787" loading="lazy" decoding="async">
+          </picture>
+        </div>
+        <div class="rt-petals" aria-hidden="true"></div>
       </div>
-      <div class="story-progress" aria-hidden="true"><span id="storyBar"></span></div>
     </div>
   </section>
 
@@ -406,12 +443,12 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
-<script src="hours.js?v=40"></script>
-<script src="coupons.js?v=40"></script>
-<script src="menu.js?v=40"></script>
-<script src="common.js?v=40"></script>
-<script src="app.js?v=40"></script>
-<script src="pwa.js?v=40" defer></script>
-<script src="fx.js?v=40" defer></script>
+<script src="hours.js?v=41"></script>
+<script src="coupons.js?v=41"></script>
+<script src="menu.js?v=41"></script>
+<script src="common.js?v=41"></script>
+<script src="app.js?v=41"></script>
+<script src="pwa.js?v=41" defer></script>
+<script src="fx.js?v=41" defer></script>
 </body>
 </html>

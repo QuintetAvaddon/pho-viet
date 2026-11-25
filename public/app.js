@@ -595,7 +595,6 @@
   renderPopular();
   renderMenu();
   renderCart();
-  initSlider("#storyTrack", "#storyPrev", "#storyNext", "#storyBar", "#storyArrows");
   initSlider("#popularRow", "#hitsPrev", "#hitsNext", "#hitsBar", "#hitsArrows");
 
   function overlaysHtml() {

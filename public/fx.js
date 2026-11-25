@@ -32,6 +32,7 @@
   };
   near("#heroTrack");
   near("#assemble");
+  near("#story");
 
   const hideLoader = () => {
     const l = $("#loader"); if (!l) return;
@@ -116,8 +117,113 @@
     if (canvas) canvas.replaceWith(box); else scene.append(box);
   }
 
+  /* ---------- Глава 3 «Ритуал»: большой кадр шага, справа два следующих ---------- */
+  // Шаги листаются сами: полоска текущего шага заполняется (CSS, 9 с), по её окончании — следующий шаг.
+  // Полоска стоит, пока глава не на экране или курсор над подписью; кнопка паузы останавливает совсем,
+  // при «уменьшить движение» шаги сами не листаются. Работает и без GSAP: смену кадров рисует CSS.
+  // Большой кадр следующего шага качается заранее, остальные — когда понадобятся.
+  function ritual() {
+    const grid = $("#rtGrid"), stage = $("#rtStage"); if (!grid || !stage) return;
+    const steps = $$(".rt-step", stage), tabs = $$(".rt-tab"), sides = $$(".rt-side", grid), dots = $$("#rtDots i"), play = $("#rtPlay");
+    const n = steps.length, titles = steps.map(s => $("h3", s).textContent);
+    const pad = i => String(i + 1).padStart(2, "0");
+    let cur = 0, want = 0, token = 0, prevT = 0, inView = false, stopped = reduced;
+
+    const load = i => {
+      const img = $(".rt-img", steps[i]);
+      if (img.dataset.srcset) {
+        img.srcset = img.dataset.srcset; img.src = img.dataset.src;
+        img.removeAttribute("data-srcset"); img.removeAttribute("data-src");
+      }
+      return img.decode ? img.decode().catch(() => {}) : Promise.resolve();
+    };
+    const render = () => {
+      tabs.forEach((t, j) => { t.setAttribute("aria-selected", j === cur); t.tabIndex = j === cur ? 0 : -1; });
+      $("#rtNum").textContent = pad(cur);
+      dots.forEach((d, j) => { d.classList.toggle("is-on", j === cur); d.classList.toggle("is-done", j < cur); });
+      sides.forEach((b, k) => {
+        const j = (cur + k + 1) % n, cap = $(".rt-side-cap", b);
+        $$("img", b).forEach((im, m) => im.classList.toggle("is-on", m === j));
+        $(".rt-side-n", b).textContent = "Шаг " + pad(j);
+        $(".rt-side-t", b).textContent = titles[j];
+        b.dataset.go = j;
+        b.setAttribute("aria-label", `Шаг ${pad(j)}: ${titles[j]}`);
+        cap.classList.remove("is-in"); void cap.offsetWidth; cap.classList.add("is-in");
+      });
+      if (inView) load((cur + 1) % n);
+    };
+    // dir: 1 — шторка справа налево (вперёд), -1 — слева направо (назад)
+    const go = (i, dir) => {
+      i = (i + n) % n;
+      if (i === want) return;
+      want = i;
+      const my = ++token;
+      Promise.race([load(i), new Promise(r => setTimeout(r, 1200))]).then(() => {
+        if (my !== token || i === cur) return; // пока кадр качался, выбрали другой шаг
+        const old = steps[cur];
+        stage.classList.toggle("is-back", dir < 0);
+        steps.forEach(s => s.classList.remove("is-prev"));
+        old.classList.remove("is-active");
+        old.classList.add("is-prev");
+        void steps[i].offsetWidth; // новый кадр стартует закрытым с нужной стороны
+        steps[i].classList.add("is-active");
+        clearTimeout(prevT);
+        prevT = setTimeout(() => old.classList.remove("is-prev"), 1300);
+        cur = i;
+        render();
+      });
+    };
+    const setStopped = v => {
+      stopped = v;
+      grid.classList.toggle("is-stopped", v);
+      play.setAttribute("aria-label", v ? "Листать шаги" : "Пауза");
+    };
+    const pause = () => grid.classList.toggle("is-paused", !inView || document.hidden);
+
+    tabs.forEach((t, j) => t.addEventListener("click", () => go(j, j < cur ? -1 : 1)));
+    $(".rt-tabs").addEventListener("keydown", e => {
+      const k = { ArrowRight: 1, ArrowLeft: -1, Home: -want, End: n - 1 - want }[e.key];
+      if (k === undefined) return;
+      e.preventDefault();
+      const j = (want + k + n) % n;
+      tabs[j].focus();
+      go(j, k < 0 ? -1 : 1);
+    });
+    sides.forEach(b => b.addEventListener("click", () => go(+b.dataset.go, 1)));
+    play.addEventListener("click", () => setStopped(!stopped));
+    $("#rtDots").addEventListener("animationend", e => { if (e.animationName === "rtFill" && !stopped) go(cur + 1, 1); });
+    document.addEventListener("visibilitychange", pause);
+    new IntersectionObserver(([e]) => { inView = e.isIntersecting; pause(); if (inView) load((cur + 1) % n); }, { threshold: 0.3 }).observe(grid);
+    // свайп по большому кадру
+    let sx = null, sy = 0;
+    stage.addEventListener("pointerdown", e => { sx = e.clientX; sy = e.clientY; });
+    stage.addEventListener("pointercancel", () => { sx = null; });
+    stage.addEventListener("pointerup", e => {
+      if (sx === null) return;
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      sx = null;
+      if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.4) go(cur + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+    });
+    setStopped(stopped);
+    pause();
+    render();
+
+    // лепестки слетают с куста цветов — CSS-анимации, раскладка случайная
+    const box = $(".rt-petals");
+    if (box && !reduced) {
+      const rnd = (a, b) => a + Math.random() * (b - a);
+      const colors = ["#f3a6bd", "#e86a8a", "#fbd3df", "#e86a8a", "#f7c1cf"];
+      let h = "";
+      for (let i = 0, k = touch ? 7 : 12; i < k; i++) {
+        h += `<i style="--x:${rnd(2, 30).toFixed(1)}%;--y:${rnd(4, 40).toFixed(1)}%;--dx:${-Math.round(rnd(160, 520))}px;--dy:${Math.round(rnd(-260, 60))}px;--d:${rnd(7, 13).toFixed(1)}s;--dl:${(-rnd(0, 13)).toFixed(1)}s;--s:${rnd(0.7, 1.3).toFixed(2)};--r:${Math.round(rnd(160, 520)) * (i % 2 ? -1 : 1)}deg;--c:${colors[i % colors.length]}"><b></b></i>`;
+      }
+      box.innerHTML = h;
+    }
+  }
+
   particles();
   cssPetals();
+  ritual();
 
   // Без GSAP или при reduced motion — показываем статичную версию
   if (reduced || !window.gsap || !window.ScrollTrigger) {
@@ -317,8 +423,26 @@
     });
   }
 
-  /* ---------- Главы: появление карточек (листаются стрелками) ---------- */
-  gsap.fromTo(".panel", { opacity: 0, y: 60 }, { opacity: 1, y: 0, stagger: 0.1, duration: 1.1, ease: "expo.out", clearProps: "transform,opacity", scrollTrigger: { trigger: ".story", start: "top 75%" } });
+  /* ---------- Глава 3 «Ритуал»: карточки поднимаются, ветка и куст выезжают из-за краёв; при прокрутке
+     и за мышью луна, ветка и куст двигаются с разной скоростью — будто стоят на разной глубине:
+     ветка и куст ближе карточек (обгоняют их), луна дальше (отстаёт) ---------- */
+  if ($("#rtGrid")) {
+    const enter = { trigger: "#rtGrid", start: "top 82%" };
+    gsap.from([".rt-stage", ".rt-side"], { y: 70, opacity: 0, duration: 1.2, ease: "expo.out", stagger: 0.1, clearProps: "transform,opacity", scrollTrigger: { ...enter } });
+    gsap.from(".rt-branch", { xPercent: -18, opacity: 0, duration: 1.8, ease: "expo.out", scrollTrigger: { ...enter } });
+    gsap.from(".rt-bloom", { xPercent: 16, opacity: 0, duration: 1.8, ease: "expo.out", delay: 0.15, scrollTrigger: { ...enter } });
+    const depth = { trigger: "#story", start: "top bottom", end: "bottom top", scrub: touch ? 0.35 : 1 };
+    gsap.fromTo(".rt-moon", { yPercent: -14 }, { yPercent: 14, ease: "none", scrollTrigger: { ...depth } }); // дальняя — отстаёт и садится за карточки
+    gsap.fromTo(".rt-branch", { yPercent: 10 }, { yPercent: -12, ease: "none", scrollTrigger: { ...depth } });
+    gsap.fromTo(".rt-bloom", { yPercent: 14 }, { yPercent: -10, ease: "none", scrollTrigger: { ...depth } });
+    if (finePointer) {
+      const layers = [[".rt-moon", 0.35], [".rt-branch", 1], [".rt-bloom", 0.8]].map(([s, d]) => ({ d, x: gsap.quickTo(s, "x", { duration: 1.2, ease: "power3.out" }), y: gsap.quickTo(s, "y", { duration: 1.2, ease: "power3.out" }) }));
+      $("#story").addEventListener("pointermove", e => {
+        const nx = e.clientX / innerWidth - 0.5, ny = e.clientY / innerHeight - 0.5;
+        layers.forEach(l => { l.x(-nx * 40 * l.d); l.y(-ny * 24 * l.d); });
+      });
+    }
+  }
 
   /* ---------- Бегущая строка ---------- */
   gsap.fromTo("#marquee1", { xPercent: 0 }, { xPercent: -35, ease: "none", scrollTrigger: { trigger: ".marquee", start: "top bottom", end: "bottom top", scrub: 0.6 } });
