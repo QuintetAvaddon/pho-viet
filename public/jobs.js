@@ -1,11 +1,8 @@
 /* Заявка на работу: проверка полей и отправка на сервер (POST /api/job → Telegram ресторана) */
 (() => {
   "use strict";
-  const CFG = window.SITE_CONFIG || {};
-  const $ = s => document.querySelector(s);
-  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const { CFG, LOCS, $, esc, phoneMask } = window.PV_UTIL;
   const form = $("#jobForm");
-  const LOCS = Array.isArray(CFG.locations) ? CFG.locations : [];
   const POSITIONS = (CFG.jobs && CFG.jobs.positions) || [];
 
   // Одна вакансия — показываем её как готовое поле, без выпадающего списка
@@ -21,21 +18,7 @@
   $("#jPoint").innerHTML = `<option value="">Выберите ресторан</option>` +
     LOCS.map(l => `<option value="${esc(l.id)}">${esc(l.name || l.id)} — ${esc(l.address || "")}</option>`).join("");
 
-  // Маска телефона +7 (XXX) XXX-XX-XX — как в оформлении заказа
-  $("#jPhone").addEventListener("input", e => {
-    let d = e.target.value.replace(/\D/g, "");
-    if (d.startsWith("8")) d = "7" + d.slice(1);
-    if (!d.startsWith("7")) d = "7" + d;
-    d = d.slice(0, 11);
-    const p = [d.slice(1, 4), d.slice(4, 7), d.slice(7, 9), d.slice(9, 11)];
-    let out = "+7";
-    if (p[0]) out += ` (${p[0]}`;
-    if (p[0].length === 3) out += ")";
-    if (p[1]) out += ` ${p[1]}`;
-    if (p[2]) out += `-${p[2]}`;
-    if (p[3]) out += `-${p[3]}`;
-    e.target.value = d.length > 1 ? out : "";
-  });
+  phoneMask($("#jPhone")); // +7 (XXX) XXX-XX-XX — как в оформлении заказа
   $("#jAge").addEventListener("input", e => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 2); });
 
   const rules = {

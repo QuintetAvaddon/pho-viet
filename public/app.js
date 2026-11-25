@@ -1,26 +1,21 @@
 (() => {
   "use strict";
 
-  const CFG = window.SITE_CONFIG;
+  const { CFG, LOCS, CART_KEY, CUTOFF, coarse, $, $$, esc, rub, plural, locById, mapUrl, readCart, phoneMask, holdTouch: hold } = window.PV_UTIL;
   const MENU = window.MENU;
   const BY_ID = Object.fromEntries(MENU.map(d => [d.id, d]));
-  const CART_KEY = "phoviet_cart_v1";
   const ORDERS_KEY = "phoviet_orders_v1";
+
+  // Окна сайта — карточка блюда, корзина, оформление заказа, инструкция установки — одна разметка для всех страниц
+  if (!document.getElementById("cartOverlay")) document.body.insertAdjacentHTML("beforeend", overlaysHtml());
 
   const BG = { bowl: "#3a1a24", rice: "#33241c", wok: "#3a2414", roll: "#3a1e1c", salad: "#1e2e1a", bao: "#2c2430", sauce: "#3a1418", drink: "#3a2412", can: "#2a1a26" };
 
-  const $ = (s, el = document) => el.querySelector(s);
-  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
-  const rub = n => n.toLocaleString("ru-RU") + " ₽";
-  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const art = d => d.img
-    ? `<img src="${esc(d.img)}" alt="" loading="lazy" decoding="async" width="600" height="600">`
-    : `<svg aria-hidden="true"><use href="#d-${d.icon}"/></svg>`;
-  const plural = (n, f) => f[(n % 10 === 1 && n % 100 !== 11) ? 0 : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? 1 : 2];
+  // у каждого блюда есть фото (menu.js подставляет images/<id>.jpg)
+  const art = d => `<img src="${esc(d.img)}" alt="" loading="lazy" decoding="async" width="600" height="600">`;
 
   /* ---------- Cart state ---------- */
-  let cart = {};
-  try { cart = JSON.parse(localStorage.getItem(CART_KEY)) || {}; } catch { cart = {}; }
+  let cart = readCart();
   for (const id of Object.keys(cart)) if (!BY_ID[id]) delete cart[id];
 
   const save = () => { localStorage.setItem(CART_KEY, JSON.stringify(cart)); document.dispatchEvent(new Event("cart:change")); };
@@ -42,7 +37,6 @@
   }
   // Лёгкий отклик при добавлении: Android — вибрация, iPhone (iOS 18+) — системный отклик переключателя.
   // Работает только в ответ на касание — так устроены браузеры.
-  const coarse = matchMedia("(pointer: coarse)").matches;
   function haptic() {
     try {
       if (navigator.vibrate) { navigator.vibrate(12); return; }
@@ -194,24 +188,19 @@
 
   /* ---------- Overlays (focus trap, Esc, scroll lock) ---------- */
   let lastFocus = null;
-  // На телефоне фон под окном не прокручивается, но body не трогаем: overflow:hidden у body заставляет
-  // браузер перестраивать всю страницу — отсюда был «лаг» при открытии корзины
-  const touchUI = matchMedia("(pointer: coarse)").matches;
-  const holdTouch = e => {
-    const sc = e.target.closest?.(".drawer-body, .modal");
-    if (!sc || sc.scrollHeight <= sc.clientHeight + 1) e.preventDefault();
-  };
+  // на телефоне фон под окном не прокручивается (common.js), body не трогаем — так открытие не тормозит
+  const holdTouch = hold(".drawer-body, .modal");
   function openOverlay(el, focusSel) {
     $$(".overlay:not([hidden])").forEach(o => { if (o !== el) { o.hidden = true; o.classList.remove("is-closing"); } });
     lastFocus = lastFocus || document.activeElement;
     clearTimeout(el._closing); el.classList.remove("is-closing");
     el.hidden = false;
-    if (touchUI) document.addEventListener("touchmove", holdTouch, { passive: false });
+    if (coarse) document.addEventListener("touchmove", holdTouch, { passive: false });
     else document.body.style.overflow = "hidden";
     document.dispatchEvent(new Event("overlay:open"));
     // на телефоне фокус — после того как окно выехало, и не в поле ввода (иначе выскакивает клавиатура)
-    const target = () => touchUI ? $("button", el) : (focusSel ? $(focusSel, el) : $("button, input, a", el));
-    setTimeout(() => target()?.focus({ preventScroll: true }), touchUI ? 460 : 0);
+    const target = () => coarse ? $("button", el) : (focusSel ? $(focusSel, el) : $("button, input, a", el));
+    setTimeout(() => target()?.focus({ preventScroll: true }), coarse ? 460 : 0);
   }
   function closeOverlay(el) {
     if (el.hidden || el.classList.contains("is-closing")) return;
@@ -372,21 +361,7 @@
     }
   });
 
-  // Маска телефона +7 (XXX) XXX-XX-XX
-  $("#fPhone").addEventListener("input", e => {
-    let d = e.target.value.replace(/\D/g, "");
-    if (d.startsWith("8")) d = "7" + d.slice(1);
-    if (!d.startsWith("7")) d = "7" + d;
-    d = d.slice(0, 11);
-    const p = [d.slice(1, 4), d.slice(4, 7), d.slice(7, 9), d.slice(9, 11)];
-    let out = "+7";
-    if (p[0]) out += ` (${p[0]}`;
-    if (p[0].length === 3) out += ")";
-    if (p[1]) out += ` ${p[1]}`;
-    if (p[2]) out += `-${p[2]}`;
-    if (p[3]) out += `-${p[3]}`;
-    e.target.value = d.length > 1 ? out : "";
-  });
+  phoneMask($("#fPhone")); // +7 (XXX) XXX-XX-XX
 
   const rules = {
     fName: v => v.trim().length >= 2 || "Укажите имя",
@@ -491,13 +466,9 @@
   }
 
   /* ---------- Рестораны сети ---------- */
-  const LOCS = Array.isArray(CFG.locations) ? CFG.locations : [];
-  const locById = id => LOCS.find(l => l.id === id);
   const locName = l => l.name || l.metro || "";
-  const mapUrl = l => "https://yandex.ru/maps/?text=" + encodeURIComponent(/москва/i.test(l.address || "") ? l.address : "Москва, " + (l.address || ""));
   // Приём заказов: с открытия до закрытия минус CFG.orderCutoffMin (логика в hours.js, та же на сервере)
   const H = window.PV_HOURS;
-  const CUTOFF = CFG.orderCutoffMin ?? 30;
   const accepting = l => !H || !l || H.acceptsNow(l, CUTOFF);
   const orderFrom = l => { const w = H && l && H.orderWindow(l, CUTOFF); return w ? H.fmt(w.from) : ""; };
   const orderTill = l => { const w = H && l && H.orderWindow(l, CUTOFF); return w ? H.fmt(w.last) : ""; };
@@ -626,4 +597,157 @@
   renderCart();
   initSlider("#storyTrack", "#storyPrev", "#storyNext", "#storyBar", "#storyArrows");
   initSlider("#popularRow", "#hitsPrev", "#hitsNext", "#hitsBar", "#hitsArrows");
+
+  function overlaysHtml() {
+    return `
+<!-- Карточка блюда -->
+<div class="overlay" id="dishOverlay" hidden>
+  <div data-lenis-prevent class="modal dish-modal" role="dialog" aria-modal="true" aria-labelledby="dishName">
+    <button class="icon-btn modal-close" data-close aria-label="Закрыть"><svg class="ic"><use href="#i-close"/></svg></button>
+    <div class="dish-art" id="dishArt"></div>
+    <div class="dish-body">
+      <div class="dish-tags" id="dishTags"></div>
+      <h3 id="dishName"></h3>
+      <p class="muted" id="dishMeta"></p>
+      <p id="dishDesc"></p>
+      <div class="dish-actions">
+        <div class="stepper" aria-label="Количество">
+          <button class="icon-btn" id="dishMinus" aria-label="Меньше"><svg class="ic"><use href="#i-minus"/></svg></button>
+          <span id="dishQty" aria-live="polite">1</span>
+          <button class="icon-btn" id="dishPlus" aria-label="Больше"><svg class="ic"><use href="#i-plus"/></svg></button>
+        </div>
+        <button class="btn btn-primary btn-lg" id="dishAdd">Добавить</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Корзина -->
+<div class="overlay overlay-drawer" id="cartOverlay" hidden>
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+    <div class="drawer-head">
+      <h3 id="cartTitle">Ваш заказ</h3>
+      <button class="icon-btn" data-close aria-label="Закрыть корзину"><svg class="ic"><use href="#i-close"/></svg></button>
+    </div>
+    <div class="drawer-body" id="cartBody" data-lenis-prevent></div>
+    <div class="drawer-foot" id="cartFoot"></div>
+  </aside>
+</div>
+<!-- Оформление заказа -->
+<div class="overlay" id="checkoutOverlay" hidden>
+  <div data-lenis-prevent class="modal checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+    <button class="icon-btn modal-close" data-close aria-label="Закрыть"><svg class="ic"><use href="#i-close"/></svg></button>
+    <div id="checkoutView">
+      <h3 id="checkoutTitle">Оформление заказа</h3>
+      <form id="checkoutForm" novalidate>
+        <div class="closed-note" id="closedNote" role="status" hidden></div>
+        <div class="seg" role="radiogroup" aria-label="Способ получения">
+          <label><input type="radio" name="method" value="delivery" checked><span>Доставка</span></label>
+          <label><input type="radio" name="method" value="pickup"><span>Самовывоз</span></label>
+        </div>
+
+        <div class="field" id="pointField" hidden>
+          <label for="fPoint" id="fPointLabel">Из какого ресторана доставить</label>
+          <select id="fPoint" name="point"></select>
+          <p class="field-hint" id="fPoint-hint"></p>
+          <p class="err" id="fPoint-err"></p>
+        </div>
+
+        <div class="field">
+          <label for="fName">Имя</label>
+          <input id="fName" name="name" autocomplete="given-name" required>
+          <p class="err" id="fName-err"></p>
+        </div>
+        <div class="field">
+          <label for="fPhone">Телефон</label>
+          <input id="fPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" required>
+          <p class="err" id="fPhone-err"></p>
+        </div>
+
+        <fieldset class="address-group" id="addressGroup">
+          <legend class="sr-only">Адрес доставки</legend>
+          <div class="field">
+            <label for="fStreet">Улица и дом</label>
+            <input id="fStreet" name="street" autocomplete="street-address" required>
+            <p class="err" id="fStreet-err"></p>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="fFlat">Квартира</label><input id="fFlat" name="flat"></div>
+            <div class="field"><label for="fEntrance">Подъезд</label><input id="fEntrance" name="entrance" inputmode="numeric"></div>
+            <div class="field"><label for="fFloor">Этаж</label><input id="fFloor" name="floor" inputmode="numeric"></div>
+          </div>
+        </fieldset>
+
+        <div class="field">
+          <label for="fTime">Когда</label>
+          <select id="fTime" name="time"></select>
+        </div>
+
+        <div class="field">
+          <span class="label">Оплата</span>
+          <div class="seg" role="radiogroup" aria-label="Способ оплаты">
+            <label><input type="radio" name="payment" value="card" checked><span>Картой при получении</span></label>
+            <label><input type="radio" name="payment" value="cash"><span>Наличными</span></label>
+          </div>
+        </div>
+        <div class="field" id="changeField" hidden>
+          <label for="fChange">С какой суммы подготовить сдачу</label>
+          <input id="fChange" name="change" inputmode="numeric" placeholder="Например, 2000">
+        </div>
+
+        <div class="field" id="promoField" hidden>
+          <label for="fPromo">Промокод</label>
+          <div class="promo-input">
+            <input id="fPromo" name="promo" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Если есть">
+            <button type="button" class="btn btn-glass" id="promoApply">Применить</button>
+          </div>
+          <p class="field-hint" id="fPromo-hint"></p>
+          <p class="err" id="fPromo-err"></p>
+        </div>
+
+        <div class="field">
+          <label for="fComment">Комментарий</label>
+          <textarea id="fComment" name="comment" rows="2" placeholder="Например: без кинзы, позвонить за 10 минут"></textarea>
+        </div>
+
+        <div class="summary" id="checkoutSummary"></div>
+
+        <label class="consent"><input type="checkbox" id="fConsent" required> <span>Даю <a href="/consent" target="_blank" rel="noopener">согласие на обработку персональных данных</a></span></label>
+        <p class="err" id="fConsent-err"></p>
+
+        <button type="submit" class="btn btn-primary btn-lg btn-block" id="submitBtn">Подтвердить заказ</button>
+        <p class="legal-note">Нажимая «Подтвердить заказ», вы соглашаетесь с <a href="/privacy" target="_blank" rel="noopener">политикой обработки персональных данных</a>.</p>
+        <p class="err submit-err" id="submitErr" role="alert"></p>
+      </form>
+    </div>
+    <div id="successView" hidden>
+      <div class="success">
+        <div class="success-icon"><svg class="ic"><use href="#i-check"/></svg></div>
+        <h3 tabindex="-1" id="successTitle">Заказ принят!</h3>
+        <p id="successText"></p>
+        <button class="btn btn-primary btn-lg" data-close>Отлично</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Инструкция установки для iPhone -->
+<div class="overlay" id="iosInstall" hidden>
+  <div class="modal install-modal" role="dialog" aria-modal="true" aria-labelledby="iosTitle">
+    <button class="icon-btn modal-close" data-close aria-label="Закрыть"><svg class="ic"><use href="#i-close"/></svg></button>
+    <div class="install-head">
+      <span class="brand-mark big"><img src="/icons/icon-192.png" alt="" width="86" height="86"></span>
+      <h3 id="iosTitle">Установить Phở Việt</h3>
+      <p class="muted">Иконка появится на экране «Домой» — меню и заказ в пару касаний.</p>
+    </div>
+    <ol class="install-steps">
+      <li><span class="step-n">1</span><span>Нажмите <b>«Поделиться»</b> <svg class="ic" aria-hidden="true"><use href="#i-share"/></svg> внизу экрана Safari</span></li>
+      <li><span class="step-n">2</span><span>Выберите <b>«На экран „Домой“»</b></span></li>
+      <li><span class="step-n">3</span><span>Нажмите <b>«Добавить»</b></span></li>
+    </ol>
+    <button class="btn btn-primary btn-lg btn-block" data-close>Понятно</button>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+`;
+  }
 })();

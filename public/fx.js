@@ -2,12 +2,10 @@
    Логика заказа живёт в app.js и от этого файла не зависит. */
 (() => {
   "use strict";
-  const $ = (s, el = document) => el.querySelector(s);
-  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  const { $, $$ } = window.PV_UTIL;
   const root = document.documentElement;
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const finePointer = matchMedia("(hover: hover) and (pointer: fine)").matches;
-  const isMobile = () => innerWidth <= 720;
   // Режимы: full — компьютер с мышью; touch — телефоны и планшеты. Анимации те же, но на телефоне
   // при прокрутке двигаются только готовые слои на видеокарте, ничего не перерисовывается. Проверка: ?fx=full|touch
   const q = new URLSearchParams(location.search).get("fx");

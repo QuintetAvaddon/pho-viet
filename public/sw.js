@@ -1,9 +1,9 @@
 /* Service worker: приложение открывается быстро и работает при плохом интернете.
    При изменении файлов сайта увеличьте VERSION, чтобы у всех обновился кэш. */
-const VERSION = "pv-v35";
+const VERSION = "pv-v36";
 const SHELL = [
-  "/", "/menu", "/app", "/promo",
-  "/styles.css?v=35", "/app.js?v=35", "/menu.js?v=35", "/hours.js?v=35", "/coupons.js?v=35", "/appshell.js?v=35", "/fx.js?v=35", "/pwa.js?v=35",
+  "/", "/menu",
+  "/styles.css?v=36", "/app.js?v=36", "/menu.js?v=36", "/common.js?v=36", "/hours.js?v=36", "/coupons.js?v=36", "/appshell.js?v=36", "/fx.js?v=36", "/pwa.js?v=36",
   "/icons/logo-176.png", "/manifest.webmanifest",
   "/icons/icon-192.png", "/icons/apple-touch-icon.png"
 ];

@@ -1,22 +1,14 @@
 /* Оболочка мобильного приложения: заставка, нижняя панель вкладок, выбор ресторана,
-   акции и купоны (страница /promo), главная приложения (/app).
-   Подключается на /app, /menu и /promo после menu.js и hours.js. */
+   акции и купоны (/promo), главная приложения (/app). Все вкладки — одна страница menu.html.
+   Подключается после hours.js, menu.js, common.js и app.js. */
 (() => {
   "use strict";
-  const CFG = window.SITE_CONFIG || {};
+  const { CFG, LOCS, CUTOFF, POINT_KEY, $, $$, esc, rub, plural, locById, mapUrl, telHref, readCart, holdTouch } = window.PV_UTIL;
   const H = window.PV_HOURS;
-  const $ = (s, el = document) => el.querySelector(s);
-  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
-  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const rub = n => Number(n).toLocaleString("ru-RU") + " ₽";
   const root = document.documentElement;
   let page = document.body.dataset.page || "menu";
   const demo = /(^|[?&])demo=1(&|$)/.test(location.search);
-  const LOCS = Array.isArray(CFG.locations) ? CFG.locations : [];
-  const CUTOFF = CFG.orderCutoffMin ?? 30;
-  const POINT_KEY = "phoviet_point";
-  const CART_KEY = "phoviet_cart_v1";
-  const tel = (CFG.phone || "").replace(/[^\d+]/g, "");
+  const tel = telHref(CFG.phone);
 
   /* ---------- Заставка с логотипом: при запуске приложения и при перезагрузке страницы ---------- */
   // Показывать ли — решает маленький скрипт сразу после разметки заставки; здесь только плавно убираем
@@ -56,7 +48,6 @@
   addEventListener("pageshow", checkIosShort);
 
   /* ---------- Часы работы и выбор ресторана ---------- */
-  const locById = id => LOCS.find(l => l.id === id);
   const fmt = m => H ? H.fmt(m) : "";
   function status(l) {
     const h = H && H.parseHours(l && l.hours);
@@ -73,7 +64,6 @@
   }
   const getPoint = () => locById(localStorage.getItem(POINT_KEY)) || null;
   const setPoint = id => { localStorage.setItem(POINT_KEY, id); document.dispatchEvent(new CustomEvent("point:change", { detail: id })); };
-  const mapUrl = l => "https://yandex.ru/maps/?text=" + encodeURIComponent("Москва, " + (l.address || ""));
 
   // Верх меню на телефоне: выбранный ресторан, его адрес и статус — как в приложении
   function renderPointButton() {
@@ -89,11 +79,7 @@
 
   /* ---------- Нижний лист (выбор ресторана, подробности акции) ---------- */
   let sheetEl = null, lastFocus = null;
-  // фон под шторкой не прокручивается — без overflow:hidden у body (он перестраивает всю страницу)
-  const holdSheet = e => {
-    const sc = e.target.closest?.(".sheet");
-    if (!sc || sc.scrollHeight <= sc.clientHeight + 1) e.preventDefault();
-  };
+  const holdSheet = holdTouch(".sheet"); // фон под шторкой не прокручивается
   function openSheet(html, label) {
     closeSheet();
     lastFocus = document.activeElement;
@@ -163,7 +149,7 @@
   if (tabbar) {
     markTab(page);
     const cartCount = () => {
-      try { return Object.values(JSON.parse(localStorage.getItem(CART_KEY)) || {}).reduce((a, b) => a + b, 0); } catch { return 0; }
+      return Object.values(readCart()).reduce((a, b) => a + b, 0);
     };
     let shown = cartCount();
     const syncBadge = () => {
@@ -349,7 +335,7 @@
       <div class="rate-text"><b>${esc(r.count || "650+")} оценок</b><span>${esc(r.source || "Яндекс Еда")} · ${esc(r.liked || "гостям нравится наш фо")}</span></div>`;
     const anyOpen = LOCS.some(l => status(l).open);
     $("#homeStats").innerHTML = [
-      [LOCS.length, ["ресторан", "ресторана", "ресторанов"][LOCS.length % 10 === 1 && LOCS.length % 100 !== 11 ? 0 : LOCS.length % 10 >= 2 && LOCS.length % 10 <= 4 && (LOCS.length % 100 < 10 || LOCS.length % 100 >= 20) ? 1 : 2] + " в Москве"],
+      [LOCS.length, plural(LOCS.length, ["ресторан", "ресторана", "ресторанов"]) + " в Москве"],
       [anyOpen ? "Открыто" : "Закрыто", anyOpen ? "сейчас" : "сейчас · " + orderHours()],
       ["от " + rub(CFG.freeDeliveryFrom || 600), "доставка бесплатно"],
       ["30–60", "минут на доставку"]
