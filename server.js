@@ -198,7 +198,7 @@ function rateLimited(ip) {
 }
 
 /* ---------- HTTP ---------- */
-const MIME = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".webmanifest": "application/manifest+json; charset=utf-8", ".json": "application/json; charset=utf-8" };
+const MIME = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".mp4": "video/mp4", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".webmanifest": "application/manifest+json; charset=utf-8", ".json": "application/json; charset=utf-8" };
 
 function send(res, code, data, type = "application/json; charset=utf-8") {
   res.writeHead(code, { "Content-Type": type, "X-Content-Type-Options": "nosniff" });
@@ -375,7 +375,24 @@ function serveStatic(req, res) {
     if (err) return send(res, 404, "Not found", "text/plain; charset=utf-8");
     // service worker и страницы не кэшируем в браузере, чтобы обновления доходили сразу
     if (/\.(html|js|webmanifest)$/.test(file)) res.setHeader("Cache-Control", "no-cache");
-    send(res, 200, data, MIME[path.extname(file).toLowerCase()] || "application/octet-stream");
+    const type = MIME[path.extname(file).toLowerCase()] || "application/octet-stream";
+    // Видео Safari на iPhone запрашивает кусками (Range) и без ответа 206 не воспроизводит
+    if (type.startsWith("video/")) {
+      res.setHeader("Accept-Ranges", "bytes");
+      const m = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || "");
+      if (m && (m[1] || m[2])) {
+        const size = data.length;
+        const start = m[1] ? Number(m[1]) : Math.max(0, size - Number(m[2]));
+        const end = m[1] && m[2] ? Math.min(Number(m[2]), size - 1) : size - 1;
+        if (start > end || start >= size) {
+          res.writeHead(416, { "Content-Range": `bytes */${size}` });
+          return res.end();
+        }
+        res.writeHead(206, { "Content-Type": type, "Content-Range": `bytes ${start}-${end}/${size}`, "Content-Length": end - start + 1, "X-Content-Type-Options": "nosniff" });
+        return res.end(data.subarray(start, end + 1));
+      }
+    }
+    send(res, 200, data, type);
   });
 }
 

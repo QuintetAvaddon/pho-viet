@@ -1,9 +1,9 @@
 /* Service worker: приложение открывается быстро и работает при плохом интернете.
    При изменении файлов сайта увеличьте VERSION, чтобы у всех обновился кэш. */
-const VERSION = "pv-v36";
+const VERSION = "pv-v37";
 const SHELL = [
   "/", "/menu",
-  "/styles.css?v=36", "/app.js?v=36", "/menu.js?v=36", "/common.js?v=36", "/hours.js?v=36", "/coupons.js?v=36", "/appshell.js?v=36", "/fx.js?v=36", "/pwa.js?v=36",
+  "/styles.css?v=37", "/app.js?v=37", "/menu.js?v=37", "/common.js?v=37", "/hours.js?v=37", "/coupons.js?v=37", "/appshell.js?v=37", "/fx.js?v=37", "/pwa.js?v=37",
   "/icons/logo-176.png", "/manifest.webmanifest",
   "/icons/icon-192.png", "/icons/apple-touch-icon.png"
 ];
@@ -33,6 +33,8 @@ self.addEventListener("fetch", e => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin === location.origin && url.pathname.startsWith("/api/")) return; // заказы — только через сеть
+  // видео браузер качает кусками (Range) — их не кэшируем, отдаёт сеть
+  if (req.headers.has("range") || url.pathname.endsWith(".mp4")) return;
 
   // Страницы: сначала сеть (свежее меню и цены), без сети — из кэша
   if (req.mode === "navigate") {
@@ -44,8 +46,8 @@ self.addEventListener("fetch", e => {
     return;
   }
 
-  // Фото и иконки: из кэша, если уже скачаны
-  if (url.origin === location.origin && /^\/(images|icons)\//.test(url.pathname)) {
+  // Фото, иконки и картинки сцены: из кэша, если уже скачаны
+  if (url.origin === location.origin && /^\/(images|icons|scene)\//.test(url.pathname)) {
     e.respondWith(caches.match(req, { ignoreSearch: true }).then(r => r || fetch(req).then(res => put(req, res))));
     return;
   }

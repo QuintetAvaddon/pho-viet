@@ -45,39 +45,6 @@
   addEventListener("scroll", onScrollHeader, { passive: true });
   onScrollHeader();
 
-  /* ---------- Звёзды ---------- */
-  // На телефонах звёзды рисуются один раз: постоянная перерисовка холста на весь экран — главный пожиратель кадров
-  function stars() {
-    const c = $("#stars"); if (!c) return;
-    const ctx = c.getContext("2d");
-    const still = touch || reduced;
-    let w = 0, h = 0, list = [];
-    const paint = t => {
-      ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = "#fff4e8";
-      for (const s of list) {
-        const a = still ? 0.7 : 0.35 + 0.65 * Math.abs(Math.sin(s.p + t * 0.001 * s.s));
-        ctx.globalAlpha = a * (1 - s.y / (h * 0.75));
-        ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
-      }
-    };
-    const resize = () => {
-      const nw = c.clientWidth, nh = c.clientHeight;
-      // на телефоне высота окна прыгает от адресной строки — из-за этого звёзды не пересоздаём
-      if (still && w && Math.abs(nw - w) < 1 && Math.abs(nh - h) < 160) return;
-      const dpr = Math.min(devicePixelRatio || 1, touch ? 1.5 : 2);
-      w = nw; h = nh; c.width = w * dpr; c.height = h * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      list = Array.from({ length: Math.round((w * h) / 4500) }, () => ({ x: Math.random() * w, y: Math.random() * h * 0.7, r: Math.random() * 1.2 + 0.2, p: Math.random() * Math.PI * 2, s: 0.5 + Math.random() * 1.5 }));
-      if (still) paint(0);
-    };
-    let rt; resize(); addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(resize, 150); });
-    if (still) return;
-    let visible = true;
-    new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(c);
-    const draw = t => { if (visible) paint(t); requestAnimationFrame(draw); };
-    requestAnimationFrame(draw);
-  }
-
   /* ---------- Угольки фонарей и лепестки лотоса (только компьютер) ---------- */
   function particles() {
     const c = $("#particles"); if (!c || reduced || touch) return;
@@ -149,7 +116,6 @@
     if (canvas) canvas.replaceWith(box); else scene.append(box);
   }
 
-  stars();
   particles();
   cssPetals();
 
@@ -205,20 +171,19 @@
   /* ---------- Интро после загрузки ---------- */
   const letters = $$(".gl");
   gsap.set(letters, { y: () => innerHeight * 0.7, opacity: 0 });
-  gsap.set(".moon", { scale: 0.6, opacity: 0 });
-  gsap.set([".karst-far", ".karst-near", ".town", ".front"], { opacity: 0 });
+  // Интро и прокрутка двигают разные свойства слоёв (интро — масштаб неба и прозрачность, прокрутка — сдвиг
+  // и масштаб города), а мышь — x/y: анимации не перебивают друг друга
+  gsap.set(".sky", { scale: 1.15, opacity: 0 });
+  gsap.set(".town", { opacity: 0 });
   gsap.set(".lantern", { y: -200 });
   gsap.set(".hero-ui > :not(.hero-copy-wrap)", { opacity: 0 });
 
   const intro = () => {
     hideLoader();
     const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
-    tl.to(".moon", { scale: 1, opacity: 1, duration: 2.2 }, 0.1)
-      .to(".karst-far", { opacity: 1, duration: 1.6 }, 0.3)
-      .to(".karst-near", { opacity: 1, duration: 1.6 }, 0.45)
-      .to(".town", { opacity: 1, duration: 1.6 }, 0.6)
+    tl.to(".sky", { scale: 1, opacity: 1, duration: 2.4 }, 0.1)
+      .to(".town", { opacity: 1, duration: 1.6 }, 0.5)
       .to(letters, { y: 0, opacity: 1, duration: 1.6, stagger: 0.12 }, 0.7)
-      .to(".front", { opacity: 1, duration: 1.4 }, 0.9)
       .to(".lantern", { y: 0, duration: 2, ease: "elastic.out(1, 0.5)", stagger: 0.12 }, 1)
       .to(".hero-ui > :not(.hero-copy-wrap)", { opacity: 1, duration: 1, stagger: 0.08 }, 1.3);
   };
@@ -229,7 +194,7 @@
   const mm = gsap.matchMedia();
   mm.add({ desktop: "(min-width: 721px)", mobile: "(max-width: 720px)" }, ctx => {
     const { desktop } = ctx.conditions;
-    // на телефоне слои луны и фонарей короче экрана (styles.css) — сдвиги пересчитаны под их высоту,
+    // на телефоне слой фонарей короче экрана (styles.css) — сдвиг пересчитан под его высоту,
     // а сглаживание прокрутки короче, чтобы сцена шла за пальцем без запаздывания
     const short = touch && !desktop;
     const tl = gsap.timeline({
@@ -241,19 +206,34 @@
       .to(".giant-inner", { scale: desktop ? 1.18 : 1.05, ease: "none", duration: 1 }, 0)
       .to(".giant-inner", { opacity: 0, ease: "power1.in", duration: 0.4 }, 0)
       .fromTo(".hero-ui .chapter-label", { opacity: 1, y: 0 }, { opacity: 0, y: -20, ease: "none", duration: 0.2, immediateRender: false }, 0)
-      .to(".moon-wrap", short ? { yPercent: -18, scale: 1.25, transformOrigin: "50% 91%", ease: "none", duration: 1 } : { yPercent: -10, scale: 1.25, ease: "none", duration: 1 }, 0)
-      .to(".karst-far", { yPercent: -3, ease: "none", duration: 1 }, 0)
-      .to(".karst-near", { yPercent: -6, ease: "none", duration: 1 }, 0)
-      .to(".town", { yPercent: -9, ease: "none", duration: 1 }, 0)
-      .to(".front", { yPercent: 8, scale: 1.12, ease: "none", duration: 1 }, 0)
+      // небо с луной уплывает вверх, город у реки приближается — камера будто летит над рекой
+      .to(".sky", { yPercent: -4, ease: "none", duration: 1 }, 0)
+      .to(".town", { yPercent: 5, scale: 1.12, ease: "none", duration: 1 }, 0)
       .to(".lanterns", { yPercent: short ? -60 : -18, ease: "none", duration: 1 }, 0)
       .fromTo(".scroll-hint", { opacity: 1 }, { opacity: 0, duration: 0.15, immediateRender: false }, 0)
       .fromTo("#heroCopy", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0.4);
     return () => {};
   });
 
-  /* ---------- Сборка чаши фо: лапша → говядина → зелень → бульон → поднос ---------- */
+  /* ---------- Сборка чаши фо: лапша → говядина → зелень → бульон → подача ---------- */
+  // Кадры одной чаши лежат друг на друге: на каждом шаге следующий проявляется поверх (меняется только прозрачность
+  // готовой картинки). Продукты влетают в чашу, чаша вздрагивает. Последний кадр — настоящее фото Фо Бо,
+  // на шаге «Подача» поверх него включается видео с паром, сделанное из этого же фото.
   if ($("#assemble")) {
+    const shots = $$(".asm-s");
+    const video = $(".asm-video");
+    // Видео качаем, когда сборка рядом (при экономии трафика — не качаем, остаётся фото), играет только
+    // на последнем шаге и только пока сборка на экране
+    const saveData = navigator.connection && navigator.connection.saveData;
+    let wantVideo = false, asmInView = false;
+    const syncVideo = () => {
+      if (!video || saveData) return;
+      if (asmInView && !video.src) { video.src = video.dataset.src; video.load(); }
+      if (wantVideo && asmInView) video.play().catch(() => {});
+      else if (!video.paused) video.pause();
+    };
+    new IntersectionObserver(([e]) => { asmInView = e.isIntersecting; syncVideo(); }, { rootMargin: "50% 0px" }).observe($("#assemble"));
+
     mm.add({ desktop: "(min-width: 1101px)", mobile: "(max-width: 1100px)" }, ctx => {
       const { desktop } = ctx.conditions;
       const steps = $$(".asm-steps li");
@@ -264,10 +244,13 @@
       const setStep = p => {
         let idx = 0; marks.forEach((m, i) => { if (p >= m) idx = i; });
         // классы меняем только при смене шага, полоску двигаем трансформом — без пересчёта раскладки
-        if (idx !== cur) { cur = idx; steps.forEach((li, i) => { li.classList.toggle("is-active", i === idx); li.classList.toggle("is-done", i < idx); }); }
+        if (idx !== cur) {
+          cur = idx;
+          steps.forEach((li, i) => { li.classList.toggle("is-active", i === idx); li.classList.toggle("is-done", i < idx); });
+          wantVideo = idx === 4; syncVideo();
+        }
         if (bar) bar.style.transform = `scaleX(${p.toFixed(4)})`;
       };
-      const BOWL = { x: 450, y: 300 };
       const tl = gsap.timeline({
         defaults: { ease: "power2.out" },
         scrollTrigger: {
@@ -275,75 +258,36 @@
           scrub: touch ? 0.35 : 1, onUpdate: self => setStep(self.progress)
         }
       });
-      // Чаша, поднос и тень — отдельные слои сцены (у всех viewBox 900×760): двигаем слой целиком, без перерисовки.
-      // Сдвиги в процентах высоты сцены: 1 единица рисунка = 100/760 %; дно чаши (450, 548) = точка «50% 72.1%».
-      const U = 100 / 760, BOWL_ORIGIN = "50% 72.1%";
-      // На телефоне начинка падает целыми слоями (лапша, мясо, зелень, бульон): слой сдвигается на видеокарте,
-      // картинка чаши не перерисовывается. На компьютере — каждая травинка и ломтик по отдельности.
-      const flat = touch;
+      const BOTTOM = "50% 70%"; // дно чаши на кадре — от него чаша приседает и подпрыгивает
+      // продукт появляется в стороне (data-x/y — сдвиг в процентах своего размера) и летит в чашу
       const fly = (sel, at) => {
-        tl.fromTo(sel, { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.7)" }, at)
-          .to(sel, { x: BOWL.x, y: BOWL.y, scale: 0.25, rotation: "+=120", opacity: 0, duration: 0.9, ease: "power2.in" }, at + 0.6);
+        const el = $(sel); if (!el) return;
+        tl.fromTo(el, { opacity: 0, scale: 0, xPercent: +el.dataset.x, yPercent: +el.dataset.y, rotation: 0 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.7)" }, at)
+          .to(el, { xPercent: 0, yPercent: 0, scale: 0.3, rotation: "+=120", opacity: 0, duration: 0.9, ease: "power2.in" }, at + 0.6);
       };
       const bump = at => tl
-        .to(".asm-l-bowl", { scaleX: 1.035, scaleY: 0.965, transformOrigin: BOWL_ORIGIN, duration: 0.12, ease: "power1.out" }, at)
-        .to(".asm-l-bowl", { scaleX: 1, scaleY: 1, duration: 0.45, ease: "elastic.out(1, 0.35)" }, at + 0.12);
-      const pour = $(".asm-pour");
-      const pourLen = pour ? pour.getTotalLength() : 200;
+        .to(".asm-bowl", { scaleX: 1.035, scaleY: 0.965, transformOrigin: BOTTOM, duration: 0.12, ease: "power1.out" }, at)
+        .to(".asm-bowl", { scaleX: 1, scaleY: 1, duration: 0.45, ease: "elastic.out(1, 0.35)" }, at + 0.12);
+      const show = (i, at, duration = 0.6) => tl.fromTo(shots[i], { opacity: 0 }, { opacity: 1, duration, ease: "none" }, at);
 
       // вступление: пустая чаша падает сверху, вращаясь, отскакивает и встаёт по центру
-      tl.fromTo(".asm-l-bowl", { yPercent: (desktop ? -820 : -420) * U }, { yPercent: 0, duration: 1.4, ease: "bounce.out" }, 0)
-        .fromTo(".asm-l-bowl", { opacity: desktop ? 1 : 0 }, { opacity: 1, duration: 0.35, ease: "none" }, 0)
-        .fromTo(".asm-l-bowl", { rotation: -38, scale: 0.86, transformOrigin: BOWL_ORIGIN }, { rotation: 0, scale: 1, duration: 1.6, ease: "elastic.out(1, 0.45)" }, 0)
-        // у самой тени прозрачность .65, поэтому слою 0.77 — вместе как прежние 0.5
-        .fromTo(".asm-l-shadow", { scale: 0.12, opacity: 0, transformOrigin: BOWL_ORIGIN }, { scale: 1, opacity: 0.77, duration: 1.4, ease: "bounce.out" }, 0);
-      if (!flat) tl.from(".asm-broth-top", { opacity: 0, duration: 0.01 }, 0);
+      tl.fromTo(".asm-bowl", { yPercent: desktop ? -110 : -80 }, { yPercent: 0, duration: 1.4, ease: "bounce.out" }, 0)
+        .fromTo(".asm-bowl", { opacity: desktop ? 1 : 0 }, { opacity: 1, duration: 0.35, ease: "none" }, 0)
+        .fromTo(".asm-bowl", { rotation: -38, scale: 0.86, transformOrigin: BOTTOM }, { rotation: 0, scale: 1, duration: 1.6, ease: "elastic.out(1, 0.45)" }, 0)
+        .fromTo(".asm-shadow", { scale: 0.12, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.4, ease: "bounce.out" }, 0);
       // 01 — лапша
-      fly(".fly-noodle", 1.5);
-      if (flat) tl.fromTo(".asm-b-noodles", { yPercent: -70 * U, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1, ease: "power2.out" }, 2.2);
-      else tl.from(".asm-noodles path", { y: -70, opacity: 0, duration: 1, stagger: 0.015 }, 2.2);
-      bump(2.5);
+      fly(".fly-noodle", 1.5); show(1, 2.2); bump(2.5);
       // 02 — говядина
-      fly(".fly-beef", 3.5); fly(".fly-beef2", 3.7); fly(".fly-anise", 3.9);
-      bump(4.6);
-      if (flat) tl.fromTo(".asm-b-beef", { yPercent: -160 * U, rotation: -10, opacity: 0, transformOrigin: "50% 40%" }, { yPercent: 0, rotation: 0, opacity: 1, duration: 1.1, ease: "back.out(1.3)" }, 4.2);
-      else tl.from(".asm-beef use", { y: -160, x: i => (i % 2 ? 120 : -120), rotation: i => (i % 2 ? 40 : -40), opacity: 0, duration: 1.1, stagger: 0.12, ease: "power3.out" }, 4.2);
+      fly(".fly-beef", 3.5); fly(".fly-beef2", 3.7); fly(".fly-anise", 3.9); show(2, 4.3); bump(4.6);
       // 03 — зелень
-      fly(".fly-basil", 5.5); fly(".fly-onion", 5.6); fly(".fly-cil", 5.8);
-      bump(6.6);
-      if (flat) tl.fromTo(".asm-b-greens", { yPercent: -110 * U, scale: 0.7, opacity: 0, transformOrigin: "50% 40%" }, { yPercent: 0, scale: 1, opacity: 1, duration: 1, ease: "back.out(1.4)" }, 6.2);
-      else tl.from(".asm-greens > *", { y: -110, scale: 0, rotation: () => gsap.utils.random(-180, 180), opacity: 0, duration: 1, stagger: 0.025, ease: "back.out(1.4)" }, 6.2);
-      // 04 — бульон: половник наливает кипящий бульон, он заваривает говядину, идёт пар
-      // центр бульона (450, 316) = «50% 41.6%» слоя
-      if (flat) tl.fromTo(".asm-b-broth", { scaleY: 0, opacity: 0, transformOrigin: "50% 41.6%" }, { scaleY: 1, opacity: 1, duration: 0.8 }, 8.9);
-      else tl.from(".asm-broth", { scaleY: 0, opacity: 0, transformOrigin: "50% 50%", duration: 0.8 }, 8.9);
-      tl.from(".asm-steam", { opacity: 0, duration: 0.8 }, 9.1);
-      tl.fromTo(".asm-ladle", { opacity: 0, x: 220, y: -180 }, { opacity: 1, x: 0, y: 0, duration: 0.8, ease: "power3.out" }, 7.7)
-        .to(".asm-ladle > g", { rotation: -35, svgOrigin: "560 120", duration: 0.5, ease: "power2.inOut" }, 8.5)
-        .fromTo(pour, { opacity: 0, strokeDasharray: pourLen, strokeDashoffset: pourLen }, { opacity: 0.95, strokeDashoffset: 0, duration: 0.45, ease: "power1.in" }, 8.8)
-        .to(".asm-ladle > g", { rotation: -55, svgOrigin: "560 120", duration: 0.9, ease: "none" }, 9.0)
-        .fromTo(".asm-splash circle", { opacity: 0, scale: 0, transformOrigin: "50% 50%" }, { opacity: 1, scale: 1, y: -14, duration: 0.3, stagger: 0.05 }, 9.1)
-        .to(".asm-splash", { opacity: 0, duration: 0.25 }, 9.75)
-        .set(".asm-splash", { opacity: 1 }, 9.1)
-        .to(".asm-steam", { scale: 1.35, transformOrigin: "50% 100%", duration: 0.8 }, 9.2)
-        .to(pour, { strokeDashoffset: -pourLen, duration: 0.4, ease: "power1.in" }, 9.8)
-        .to(pour, { opacity: 0, duration: 0.05 }, 10.2)
-        .to(".asm-ladle > g", { rotation: 0, svgOrigin: "560 120", duration: 0.4 }, 9.9)
-        .to(".asm-ladle", { opacity: 0, x: 220, y: -180, duration: 0.6, ease: "power2.in" }, 10.1)
-        .to(".asm-steam", { scale: 1, duration: 0.8 }, 10.4);
-      // долитый бульон поднимается вокруг лапши и мяса
-      if (flat) tl.fromTo(".asm-b-brothtop", { opacity: 0, yPercent: 3 * U }, { opacity: 1, yPercent: 0, duration: 0.8 }, 9.05);
-      else tl.to(".asm-broth-top", { opacity: 1, duration: 0.01 }, 9.05)
-        .from(".asm-broth-top ellipse, .asm-broth-top circle", { opacity: 0, scaleY: 0.3, transformOrigin: "50% 100%", duration: 0.8, stagger: 0.04 }, 9.05);
-      bump(9.1);
-      // 05 — подача на бамбуковом подносе; палочки, гарнир и соусы приезжают следом своим слоем
-      tl.from(".asm-l-tray", { yPercent: 340 * U, opacity: 0, duration: 1.3, ease: "power3.out" }, 10.2)
-        .from(".asm-l-side", { yPercent: 380 * U, opacity: 0, duration: 1.3, ease: "power3.out" }, 10.45)
-        .to(".asm-l-bowl", { yPercent: 14 * U, duration: 0.6, ease: "power2.inOut" }, 11.1)
-        .to(".asm-l-shadow", { yPercent: 14 * U, duration: 0.6, ease: "power2.inOut" }, 11.1);
-      if (!flat) tl.from(".asm-garnish > *", { y: 40, opacity: 0, scale: 0.6, transformOrigin: "50% 100%", duration: 0.7, stagger: 0.04, ease: "back.out(1.6)" }, 10.9)
-        .from(".asm-side > :not(.asm-garnish)", { y: 50, opacity: 0, duration: 0.8, stagger: 0.08 }, 11.0);
-      tl.to(".asm-scene", { scale: desktop ? 0.94 : 0.97, duration: 0.8, ease: "none" }, 12.2)
+      fly(".fly-cil", 5.5); fly(".fly-onion", 5.7); show(3, 6.2); bump(6.6);
+      // 04 — бульон: кипящий бульон заваривает говядину — сырое мясо сменяется настоящим фото, поднимается пар
+      show(4, 8.3, 1.3); bump(9.1);
+      tl.fromTo(".asm-steam", { opacity: 0 }, { opacity: 1, duration: 0.8 }, 8.9);
+      // 05 — подача: включается видео с паром, чаша чуть приближается
+      tl.fromTo(".asm-video", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "none" }, 10.2)
+        .to([".asm-bowl", ".asm-shadow"], { scale: 1.06, duration: 1.2, ease: "power2.inOut" }, 10.4)
+        .to(".asm-scene", { scale: desktop ? 0.94 : 0.97, duration: 0.8, ease: "none" }, 12.2)
         .to({}, { duration: 0.6 }, 13.0);
       setStep(0);
       return () => {};
