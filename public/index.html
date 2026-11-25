@@ -58,7 +58,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=41">
+  <link rel="stylesheet" href="styles.css?v=42">
   <script>
     // При обновлении всегда начинаем с главного экрана, а не с места прошлой прокрутки
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -106,9 +106,15 @@
 
 <a class="skip-link" href="/menu">Перейти к меню</a>
 
+<!-- Заставка: луна с неба первого экрана (для телефона и компьютера — своя, как на небе), кольцо загрузки, надпись.
+     Когда сайт готов, луна поднимается на своё место в небе (fx.js), заставка растворяется -->
 <div class="loader" id="loader" aria-hidden="true">
-  <div class="loader-moon"></div>
-  <p class="loader-word">PHỞ<span>VIỆT</span></p>
+  <div class="loader-orb">
+    <div class="loader-moon"><picture><source media="(min-aspect-ratio: 1/1)" srcset="/scene/moon-l.webp"><img src="/scene/moon-p.webp" alt="" width="320" height="320" fetchpriority="high"></picture></div>
+    <svg class="loader-ring" viewBox="0 0 200 200"><circle cx="100" cy="100" r="99"/><circle class="arc" cx="100" cy="100" r="99" pathLength="100"/></svg>
+  </div>
+  <p class="loader-word"><span style="--i:0">P</span><span style="--i:1">H</span><span style="--i:2">Ở</span> <span style="--i:3">V</span><span style="--i:4">I</span><span style="--i:5">Ệ</span><span style="--i:6">T</span></p>
+  <p class="loader-sub">вьетнамская кухня</p>
 </div>
 
 <div class="grain" aria-hidden="true"></div>
@@ -164,6 +170,8 @@
       <!-- Передний план: кувшинки с лотосами в нижних углах — ближе всего, поверх букв и затемнения краёв -->
       <div class="layer front" data-depth="0.6" aria-hidden="true"><i class="lotus l1"></i><i class="lotus l2"></i></div>
     </div>
+
+    <div class="hero-fade" aria-hidden="true"></div>
 
     <!-- Интерфейс поверх сцены -->
     <div class="hero-ui">
@@ -236,11 +244,11 @@
         <picture class="fly fly-noodle" data-x="-230" data-y="-190"><source srcset="/scene/bowl/fly-noodle.avif" type="image/avif"><img src="/scene/bowl/fly-noodle.webp" alt="" width="300" height="260" decoding="async" loading="lazy"></picture>
         <picture class="fly fly-beef" data-x="210" data-y="-200"><source srcset="/scene/bowl/fly-beef.avif" type="image/avif"><img src="/scene/bowl/fly-beef.webp" alt="" width="300" height="202" decoding="async" loading="lazy"></picture>
         <picture class="fly fly-beef2" data-x="-240" data-y="40"><source srcset="/scene/bowl/fly-beef2.avif" type="image/avif"><img src="/scene/bowl/fly-beef2.webp" alt="" width="300" height="223" decoding="async" loading="lazy"></picture>
-        <picture class="fly fly-anise" data-x="230" data-y="-40"><source srcset="/scene/bowl/fly-anise.avif" type="image/avif"><img src="/scene/bowl/fly-anise.webp" alt="" width="300" height="286" decoding="async" loading="lazy"></picture>
         <picture class="fly fly-cil" data-x="220" data-y="-210"><source srcset="/scene/bowl/fly-cil.avif" type="image/avif"><img src="/scene/bowl/fly-cil.webp" alt="" width="283" height="300" decoding="async" loading="lazy"></picture>
         <picture class="fly fly-onion" data-x="-230" data-y="-120"><source srcset="/scene/bowl/fly-onion.avif" type="image/avif"><img src="/scene/bowl/fly-onion.webp" alt="" width="300" height="282" decoding="async" loading="lazy"></picture>
       </div>
     </div>
+    <div class="asm-fade" aria-hidden="true"></div>
     </div>
   </section>
 
@@ -443,12 +451,12 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
-<script src="hours.js?v=41"></script>
-<script src="coupons.js?v=41"></script>
-<script src="menu.js?v=41"></script>
-<script src="common.js?v=41"></script>
-<script src="app.js?v=41"></script>
-<script src="pwa.js?v=41" defer></script>
-<script src="fx.js?v=41" defer></script>
+<script src="hours.js?v=42"></script>
+<script src="coupons.js?v=42"></script>
+<script src="menu.js?v=42"></script>
+<script src="common.js?v=42"></script>
+<script src="app.js?v=42"></script>
+<script src="pwa.js?v=42" defer></script>
+<script src="fx.js?v=42" defer></script>
 </body>
 </html>

@@ -34,10 +34,30 @@
   near("#assemble");
   near("#story");
 
+  // Где луна стоит на небе первого экрана. Центр и диаметр — доли картинки неба (build_assets.py, шаг loader);
+  // .sky — экран плюс по 2 % с каждой стороны, фон cover с позицией 50% 35%. Трансформации (интро, мышь) не учитываем:
+  // нужно место луны, когда сцена встанет
+  const skyMoon = () => {
+    const sky = $(".sky"), scene = $("#scene"); if (!sky || !scene) return null;
+    const land = matchMedia("(min-aspect-ratio: 1/1)").matches;
+    const M = land ? { x: 0.5002, y: 0.2634, d: 0.1862, ar: 2688 / 1520 } : { x: 0.5021, y: 0.2221, d: 0.3145, ar: 1520 / 2688 };
+    const sr = scene.getBoundingClientRect(), W = sky.offsetWidth, H = sky.offsetHeight;
+    const RH = Math.max(H, W / M.ar), RW = RH * M.ar;
+    const left = sr.left + sky.offsetLeft + (W - RW) * 0.5, top = sr.top + sky.offsetTop + (H - RH) * 0.35;
+    return { x: left + M.x * RW, y: top + M.y * RH, d: M.d * RW };
+  };
   const hideLoader = () => {
     const l = $("#loader"); if (!l) return;
+    const m = $(".loader-moon", l), t = skyMoon();
+    if (m && t) {
+      // луна заставки поднимается туда, где луна на небе, и принимает её размер
+      const r = m.getBoundingClientRect();
+      l.style.setProperty("--mx", (t.x - r.left - r.width / 2).toFixed(1) + "px");
+      l.style.setProperty("--my", (t.y - r.top - r.height / 2).toFixed(1) + "px");
+      l.style.setProperty("--ms", (t.d / m.offsetWidth).toFixed(3));
+    }
     l.classList.add("done");
-    setTimeout(() => { l.style.display = "none"; }, 900); // убираем совсем, чтобы не рисовался и не грузил браузер
+    setTimeout(() => { l.style.display = "none"; }, 1500); // убираем совсем, чтобы не рисовался и не грузил браузер
   };
 
   // Шапка становится стеклянной после начала прокрутки (работает и без GSAP)
@@ -298,6 +318,8 @@
   // их шрифт (не дольше 2.5 с), — иначе мелькнул бы запасной шрифт.
   const ready = document.fonts ? document.fonts.ready : Promise.resolve();
   const wait = ms => new Promise(r => setTimeout(r, ms));
+  // буквы на заставке появляются, когда загрузился их шрифт
+  Promise.race([ready, wait(1500)]).then(() => { const l = $("#loader"); if (l) l.classList.add("has-font"); });
   const skyReady = new Promise(resolve => {
     const m = /url\("?([^")]+)"?\)/.exec(getComputedStyle($(".sky")).backgroundImage || "");
     if (!m) return resolve();
@@ -331,7 +353,9 @@
       .to(".front", { yPercent: 12, scale: 1.15, ease: "none", duration: 1 }, 0) // кувшинки ближе всех — уходят вниз быстрее
       .to(".lanterns", { yPercent: short ? -60 : -18, ease: "none", duration: 1 }, 0)
       .fromTo(".scroll-hint", { opacity: 1 }, { opacity: 0, duration: 0.15, immediateRender: false }, 0)
-      .fromTo("#heroCopy", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0.4);
+      .fromTo("#heroCopy", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0.4)
+      // низ экрана растворяется в фоне страницы — стык со сборкой фо не виден
+      .fromTo(".hero-fade", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "none" }, 0.7);
     return () => {};
   });
 
@@ -398,7 +422,7 @@
       // 01 — лапша
       fly(".fly-noodle", 1.5); show(1, 2.2); bump(2.5);
       // 02 — говядина
-      fly(".fly-beef", 3.5); fly(".fly-beef2", 3.7); fly(".fly-anise", 3.9); show(2, 4.3); bump(4.6);
+      fly(".fly-beef", 3.5); fly(".fly-beef2", 3.7); show(2, 4.3); bump(4.6);
       // 03 — зелень
       fly(".fly-cil", 5.5); fly(".fly-onion", 5.7); show(3, 6.2); bump(6.6);
       // 04 — бульон: кипящий бульон заваривает говядину — сырое мясо сменяется настоящим фото, поднимается пар
@@ -408,7 +432,7 @@
       tl.fromTo(".asm-video", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "none" }, 10.2)
         .to([".asm-bowl", ".asm-shadow"], { scale: 1.06, duration: 1.2, ease: "power2.inOut" }, 10.4)
         .to(".asm-scene", { scale: desktop ? 0.94 : 0.97, duration: 0.8, ease: "none" }, 12.2)
-        .to({}, { duration: 0.6 }, 13.0);
+        .fromTo(".asm-fade", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "none" }, 13.0); // конец главы растворяется в фоне
       setStep(0);
       return () => {};
     });
