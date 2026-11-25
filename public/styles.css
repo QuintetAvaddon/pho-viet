@@ -1482,3 +1482,11 @@ body[data-page="promo"] .view:not([data-view="promo"]) { display: none; }
   html.ios-short body.app-page .toast { bottom: 92px; }
   html.ios-short .drawer-foot, html.ios-short.is-app .drawer-foot, html.ios-short.is-app .checkout-modal { padding-bottom: 22px; }
 }
+
+/* =========================================================
+   iPhone: если страница короче экрана (вкладка «Акции» с одной карточкой), iPhone ставит нижнюю панель
+   и окна выше — на высоту строки состояния. Страница приложения на телефоне всегда чуть выше экрана.
+   ========================================================= */
+@media (max-width: 720px) {
+  body.app-page { min-height: calc(100vh + 48px); min-height: calc(100lvh + 48px); }
+}
