@@ -9,9 +9,13 @@
     d.style.setProperty("--svh", innerHeight / 100 + "px");
     // картинки первого экрана начинают качаться сразу, не дожидаясь стилей
     var f = matchMedia("(min-aspect-ratio: 1/1)").matches ? "l" : "p";
+    // город — в том же формате, что выберут стили: AVIF, если браузер понимает image-set с типом, иначе WebP
+    var avif = !!(window.CSS && CSS.supports && CSS.supports("background-image", 'image-set(url("x.avif") type("image/avif"))'));
     ["sky", "town"].forEach(function (n) {
       var l = document.createElement("link");
-      l.rel = "preload"; l.as = "image"; l.href = "/scene/" + n + "-" + f + ".webp";
+      var a = avif && n === "town";
+      l.rel = "preload"; l.as = "image"; l.href = "/scene/" + n + "-" + f + (a ? ".avif" : ".webp");
+      if (a) l.type = "image/avif";
       if (n === "sky") l.setAttribute("fetchpriority", "high");
       document.head.appendChild(l);
     });
@@ -54,7 +58,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=39">
+  <link rel="stylesheet" href="styles.css?v=40">
   <script>
     // При обновлении всегда начинаем с главного экрана, а не с места прошлой прокрутки
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -229,12 +233,12 @@
           <video class="asm-video" muted playsinline loop preload="none" disablepictureinpicture data-src="/scene/bowl/pho.mp4"></video>
           <div class="asm-steam"><span class="steam s1"></span><span class="steam s2"></span><span class="steam s3"></span></div>
         </div>
-        <img class="fly fly-noodle" src="/scene/bowl/fly-noodle.webp" alt="" width="300" height="260" decoding="async" loading="lazy" data-x="-230" data-y="-190" aria-hidden="true">
-        <img class="fly fly-beef" src="/scene/bowl/fly-beef.webp" alt="" width="300" height="202" decoding="async" loading="lazy" data-x="210" data-y="-200" aria-hidden="true">
-        <img class="fly fly-beef2" src="/scene/bowl/fly-beef2.webp" alt="" width="300" height="223" decoding="async" loading="lazy" data-x="-240" data-y="40" aria-hidden="true">
-        <img class="fly fly-anise" src="/scene/bowl/fly-anise.webp" alt="" width="300" height="286" decoding="async" loading="lazy" data-x="230" data-y="-40" aria-hidden="true">
-        <img class="fly fly-cil" src="/scene/bowl/fly-cil.webp" alt="" width="283" height="300" decoding="async" loading="lazy" data-x="220" data-y="-210" aria-hidden="true">
-        <img class="fly fly-onion" src="/scene/bowl/fly-onion.webp" alt="" width="300" height="282" decoding="async" loading="lazy" data-x="-230" data-y="-120" aria-hidden="true">
+        <picture class="fly fly-noodle" data-x="-230" data-y="-190"><source srcset="/scene/bowl/fly-noodle.avif" type="image/avif"><img src="/scene/bowl/fly-noodle.webp" alt="" width="300" height="260" decoding="async" loading="lazy"></picture>
+        <picture class="fly fly-beef" data-x="210" data-y="-200"><source srcset="/scene/bowl/fly-beef.avif" type="image/avif"><img src="/scene/bowl/fly-beef.webp" alt="" width="300" height="202" decoding="async" loading="lazy"></picture>
+        <picture class="fly fly-beef2" data-x="-240" data-y="40"><source srcset="/scene/bowl/fly-beef2.avif" type="image/avif"><img src="/scene/bowl/fly-beef2.webp" alt="" width="300" height="223" decoding="async" loading="lazy"></picture>
+        <picture class="fly fly-anise" data-x="230" data-y="-40"><source srcset="/scene/bowl/fly-anise.avif" type="image/avif"><img src="/scene/bowl/fly-anise.webp" alt="" width="300" height="286" decoding="async" loading="lazy"></picture>
+        <picture class="fly fly-cil" data-x="220" data-y="-210"><source srcset="/scene/bowl/fly-cil.avif" type="image/avif"><img src="/scene/bowl/fly-cil.webp" alt="" width="283" height="300" decoding="async" loading="lazy"></picture>
+        <picture class="fly fly-onion" data-x="-230" data-y="-120"><source srcset="/scene/bowl/fly-onion.avif" type="image/avif"><img src="/scene/bowl/fly-onion.webp" alt="" width="300" height="282" decoding="async" loading="lazy"></picture>
       </div>
     </div>
     </div>
@@ -402,12 +406,12 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
-<script src="hours.js?v=39"></script>
-<script src="coupons.js?v=39"></script>
-<script src="menu.js?v=39"></script>
-<script src="common.js?v=39"></script>
-<script src="app.js?v=39"></script>
-<script src="pwa.js?v=39" defer></script>
-<script src="fx.js?v=39" defer></script>
+<script src="hours.js?v=40"></script>
+<script src="coupons.js?v=40"></script>
+<script src="menu.js?v=40"></script>
+<script src="common.js?v=40"></script>
+<script src="app.js?v=40"></script>
+<script src="pwa.js?v=40" defer></script>
+<script src="fx.js?v=40" defer></script>
 </body>
 </html>

@@ -34,6 +34,8 @@
   --lan-1: url(/scene/lantern-1.webp);
   --lan-2: url(/scene/lantern-2.webp);
   --lan-3: url(/scene/lantern-3.webp);
+  --lotus-1: url(/scene/lotus-1.webp);
+  --lotus-2: url(/scene/lotus-2.webp);
 }
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -256,6 +258,20 @@ body.has-pointer .cursor-glow { opacity: 1; }
 @media (min-aspect-ratio: 1/1) {
   :root { --sky: url(/scene/sky-l.webp); --town: url(/scene/town-l.webp); }
 }
+/* Браузеры, которые умеют AVIF, берут его там, где он вдвое легче (город, кувшинки, фонари); остальные — WebP */
+@supports (background-image: image-set(url("x.avif") type("image/avif"))) {
+  :root {
+    --town: image-set(url(/scene/town-p.avif) type("image/avif"), url(/scene/town-p.webp) type("image/webp"));
+    --lan-1: image-set(url(/scene/lantern-1.avif) type("image/avif"), url(/scene/lantern-1.webp) type("image/webp"));
+    --lan-2: image-set(url(/scene/lantern-2.avif) type("image/avif"), url(/scene/lantern-2.webp) type("image/webp"));
+    --lan-3: image-set(url(/scene/lantern-3.avif) type("image/avif"), url(/scene/lantern-3.webp) type("image/webp"));
+    --lotus-1: image-set(url(/scene/lotus-1.avif) type("image/avif"), url(/scene/lotus-1.webp) type("image/webp"));
+    --lotus-2: image-set(url(/scene/lotus-2.avif) type("image/avif"), url(/scene/lotus-2.webp) type("image/webp"));
+  }
+  @media (min-aspect-ratio: 1/1) {
+    :root { --town: image-set(url(/scene/town-l.avif) type("image/avif"), url(/scene/town-l.webp) type("image/webp")); }
+  }
+}
 /* небо чуть больше экрана, город шире: при параллаксе за мышью не открываются края */
 .sky { inset: -2%; width: auto; height: auto; background: var(--sky) 50% 35% / cover no-repeat; }
 .town { left: -3%; width: 106%; background: var(--town) 50% 100% / cover no-repeat; transform-origin: 50% 100%; }
@@ -275,8 +291,8 @@ body.has-pointer .cursor-glow { opacity: 1; }
    цветы чуть покачиваются на воде */
 .front { top: auto; bottom: 0; height: 55%; pointer-events: none; transform-origin: 50% 100%; }
 .lotus { position: absolute; bottom: -3%; width: 44%; max-width: 640px; background: 50% 100% / contain no-repeat; animation: bob 6s ease-in-out infinite; }
-.lotus.l1 { left: -5%; aspect-ratio: 900 / 602; background-image: url(/scene/lotus-1.webp); }
-.lotus.l2 { right: -5%; aspect-ratio: 900 / 734; background-image: url(/scene/lotus-2.webp); animation-delay: -3s; }
+.lotus.l1 { left: -5%; aspect-ratio: 900 / 602; background-image: var(--lotus-1); }
+.lotus.l2 { right: -5%; aspect-ratio: 900 / 734; background-image: var(--lotus-2); animation-delay: -3s; }
 @keyframes bob { 50% { translate: 0 -6px; } }
 @media (max-width: 720px) {
   .lotus { width: 78%; }
@@ -1155,7 +1171,8 @@ html.is-app .drawer-foot, html.is-app .checkout-modal { padding-bottom: max(22px
 .asm-steam .s2 { left: 43%; }
 .asm-steam .s3 { left: 52%; }
 /* продукты стоят над чашей, их стартовый сдвиг задаёт fx.js (data-x/y) */
-.fly { position: absolute; left: 50%; top: 34%; width: 15%; height: auto; margin: -7% 0 0 -7.5%; pointer-events: none; }
+.fly { position: absolute; left: 50%; top: 34%; width: 15%; height: auto; display: block; margin: -7% 0 0 -7.5%; pointer-events: none; }
+.fly img { display: block; width: 100%; height: auto; }
 html.no-fx .asm-s, html.no-fx .asm-steam { opacity: 1; }
 html.no-fx .asm-video { display: none; }
 html.fx-touch .asm-steam .steam { filter: none; }

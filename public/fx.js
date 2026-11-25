@@ -183,13 +183,25 @@
     const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
     tl.to(".sky", { scale: 1, opacity: 1, duration: 2.4 }, 0.1)
       .to(".town", { opacity: 1, duration: 1.6 }, 0.5)
-      .to(letters, { y: 0, opacity: 1, duration: 1.6, stagger: 0.12 }, 0.7)
       .to(".front", { opacity: 1, duration: 1.4 }, 0.9)
       .to(".lantern", { y: 0, duration: 2, ease: "elastic.out(1, 0.5)", stagger: 0.12 }, 1)
       .to(".hero-ui > :not(.hero-copy-wrap)", { opacity: 1, duration: 1, stagger: 0.08 }, 1.3);
   };
+  // Заставка ждёт не шрифты, а картинку неба: она лёгкая и качается первой (preload в <head>), поэтому
+  // на медленном интернете сцена открывается на 1–2 секунды раньше. Буквы PHỞ поднимаются, когда загрузится
+  // их шрифт (не дольше 2.5 с), — иначе мелькнул бы запасной шрифт.
   const ready = document.fonts ? document.fonts.ready : Promise.resolve();
-  Promise.race([ready, new Promise(r => setTimeout(r, 2500))]).then(() => setTimeout(intro, 350));
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const skyReady = new Promise(resolve => {
+    const m = /url\("?([^")]+)"?\)/.exec(getComputedStyle($(".sky")).backgroundImage || "");
+    if (!m) return resolve();
+    const img = new Image();
+    img.onload = img.onerror = resolve;
+    img.src = m[1];
+  });
+  const sceneShown = Promise.race([skyReady, wait(1500)]).then(() => wait(150)).then(intro);
+  Promise.all([sceneShown, Promise.race([ready, wait(2500)])])
+    .then(() => gsap.to(letters, { y: 0, opacity: 1, duration: 1.6, stagger: 0.12, ease: "expo.out", delay: 0.5 }));
 
   /* ---------- Hero: прокрутка разворачивает сцену ---------- */
   const mm = gsap.matchMedia();

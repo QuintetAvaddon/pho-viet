@@ -46,6 +46,44 @@ function loadMenu() {
   return { cfg: w.SITE_CONFIG, byId: Object.fromEntries(w.MENU.map(d => [d.id, d])) };
 }
 
+/* ---------- Разметка для Яндекса и Google (schema.org): рестораны сети из menu.js ----------
+   Вставляется в главную при отдаче, поэтому адреса, часы и телефон всегда совпадают с menu.js. */
+const SITE_URL = PUBLIC_URL || "https://pho-viet-site.onrender.com";
+let ldCache = { mtime: 0, html: "" };
+function restaurantLd() {
+  const mtime = fs.statSync(path.join(PUBLIC_DIR, "menu.js")).mtimeMs;
+  if (ldCache.mtime === mtime) return ldCache.html;
+  const { cfg, byId } = loadMenu();
+  const prices = Object.values(byId).map(d => d.price).filter(p => Number.isFinite(p) && p > 0);
+  const tel = s => "+" + String(s || "").replace(/\D/g, "");
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const hours = h => {
+    const m = /(\d{1,2}:\d{2})\s*[–-]\s*(\d{1,2}:\d{2})/.exec(h || "");
+    if (!m) return undefined;
+    const pad = t => t.padStart(5, "0");
+    // закрытие в полночь поисковики понимают как 23:59
+    return [{ "@type": "OpeningHoursSpecification", dayOfWeek: days, opens: pad(m[1]), closes: /^(00|24):00$/.test(m[2]) ? "23:59" : pad(m[2]) }];
+  };
+  const org = { "@type": "Organization", "@id": SITE_URL + "/#org", name: "Phở Việt", url: SITE_URL + "/", logo: SITE_URL + "/icons/icon-512.png", telephone: tel(cfg.phone) };
+  const places = (cfg.locations || []).map(l => ({
+    "@type": "Restaurant",
+    "@id": `${SITE_URL}/#${l.id}`,
+    name: `Phở Việt — ${l.name}`,
+    parentOrganization: { "@id": org["@id"] },
+    url: SITE_URL + "/",
+    menu: SITE_URL + "/menu",
+    image: SITE_URL + "/og.jpg",
+    servesCuisine: "Вьетнамская кухня",
+    priceRange: prices.length ? `${Math.min(...prices)}–${Math.max(...prices)} ₽` : undefined,
+    telephone: tel(l.phone || cfg.phone),
+    address: { "@type": "PostalAddress", streetAddress: l.address, addressLocality: cfg.address || "Москва", addressCountry: "RU" },
+    openingHoursSpecification: hours(l.hours)
+  }));
+  const json = JSON.stringify({ "@context": "https://schema.org", "@graph": [org, ...places] }).replace(/</g, "\\u003c");
+  ldCache = { mtime, html: `<script type="application/ld+json">${json}</script>` };
+  return ldCache.html;
+}
+
 /* ---------- Часы приёма заказов (тот же код, что на сайте: public/hours.js) ---------- */
 const HOURS = (() => {
   const ctx = { window: {}, Date }; // часы процесса сервера, а не отдельной песочницы vm
@@ -198,7 +236,7 @@ function rateLimited(ip) {
 }
 
 /* ---------- HTTP ---------- */
-const MIME = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".mp4": "video/mp4", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".webmanifest": "application/manifest+json; charset=utf-8", ".json": "application/json; charset=utf-8" };
+const MIME = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".mp4": "video/mp4", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".webmanifest": "application/manifest+json; charset=utf-8", ".json": "application/json; charset=utf-8", ".avif": "image/avif", ".txt": "text/plain; charset=utf-8", ".xml": "application/xml; charset=utf-8" };
 
 function send(res, code, data, type = "application/json; charset=utf-8") {
   res.writeHead(code, { "Content-Type": type, "X-Content-Type-Options": "nosniff" });
@@ -375,6 +413,10 @@ function serveStatic(req, res) {
     if (err) return send(res, 404, "Not found", "text/plain; charset=utf-8");
     // service worker и страницы не кэшируем в браузере, чтобы обновления доходили сразу
     if (/\.(html|js|webmanifest)$/.test(file)) res.setHeader("Cache-Control", "no-cache");
+    if (file === path.join(PUBLIC_DIR, "index.html")) {
+      try { data = Buffer.from(data.toString("utf8").replace("</head>", restaurantLd() + "\n</head>")); }
+      catch (e) { console.error("[ld] разметка не собрана:", e.message); }
+    }
     const type = MIME[path.extname(file).toLowerCase()] || "application/octet-stream";
     // Видео Safari на iPhone запрашивает кусками (Range) и без ответа 206 не воспроизводит
     if (type.startsWith("video/")) {
