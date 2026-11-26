@@ -228,7 +228,7 @@
     pause();
     render();
 
-    // лепестки слетают с куста цветов — CSS-анимации, раскладка случайная
+    // лепестки слетают с куста цветов внизу — CSS-анимации, раскладка случайная
     const box = $(".rt-petals");
     if (box && !reduced) {
       const rnd = (a, b) => a + Math.random() * (b - a);
@@ -238,6 +238,15 @@
         h += `<i style="--x:${rnd(2, 30).toFixed(1)}%;--y:${rnd(4, 40).toFixed(1)}%;--dx:${-Math.round(rnd(160, 520))}px;--dy:${Math.round(rnd(-260, 60))}px;--d:${rnd(7, 13).toFixed(1)}s;--dl:${(-rnd(0, 13)).toFixed(1)}s;--s:${rnd(0.7, 1.3).toFixed(2)};--r:${Math.round(rnd(160, 520)) * (i % 2 ? -1 : 1)}deg;--c:${colors[i % colors.length]}"><b></b></i>`;
       }
       box.innerHTML = h;
+      // …и падают с ветки наверху, покачиваясь
+      const fall = $(".rt-fall");
+      if (fall) {
+        let f = "";
+        for (let i = 0, k = touch ? 6 : 10; i < k; i++) {
+          f += `<i style="--x:${rnd(4, 92).toFixed(1)}%;--y:${rnd(0, 80).toFixed(1)}%;--dx:${Math.round(rnd(40, 220))}px;--dy:${Math.round(rnd(320, 620))}px;--d:${rnd(8, 14).toFixed(1)}s;--dl:${(-rnd(0, 14)).toFixed(1)}s;--s:${rnd(0.7, 1.25).toFixed(2)};--r:${Math.round(rnd(200, 600)) * (i % 2 ? -1 : 1)}deg;--c:${colors[(i + 2) % colors.length]}"><b></b></i>`;
+        }
+        fall.innerHTML = f;
+      }
     }
   }
 
@@ -313,13 +322,16 @@
       .to(".lantern", { y: 0, duration: 2, ease: "elastic.out(1, 0.5)", stagger: 0.12 }, 1)
       .to(".hero-ui > :not(.hero-copy-wrap)", { opacity: 1, duration: 1, stagger: 0.08 }, 1.3);
   };
-  // Заставка ждёт не шрифты, а картинку неба: она лёгкая и качается первой (preload в <head>), поэтому
-  // на медленном интернете сцена открывается на 1–2 секунды раньше. Буквы PHỞ поднимаются, когда загрузится
-  // их шрифт (не дольше 2.5 с), — иначе мелькнул бы запасной шрифт.
+  // Заставка ждёт картинку неба (она лёгкая и качается первой, preload в <head>) и надпись PHỞ VIỆT: буквы
+  // поднимаются, когда загрузился их шрифт (не дольше 1,2 с — иначе мелькнул бы запасной), и стоят целиком,
+  // пока их можно прочитать, — только потом луна уходит на небо. Буквы PHỞ на первом экране поднимаются,
+  // когда загрузится их шрифт (не дольше 2,5 с).
   const ready = document.fonts ? document.fonts.ready : Promise.resolve();
   const wait = ms => new Promise(r => setTimeout(r, ms));
-  // буквы на заставке появляются, когда загрузился их шрифт
-  Promise.race([ready, wait(1500)]).then(() => { const l = $("#loader"); if (l) l.classList.add("has-font"); });
+  const wordFont = document.fonts && document.fonts.load ? document.fonts.load('900 21px "Unbounded"').catch(() => {}) : Promise.resolve();
+  const wordShown = Promise.race([wordFont, wait(1200)])
+    .then(() => { const l = $("#loader"); if (l) l.classList.add("has-font"); })
+    .then(() => wait(2000)); // буквы встают по одной (~1,3 с) и ещё около секунды стоят целиком
   const skyReady = new Promise(resolve => {
     const m = /url\("?([^")]+)"?\)/.exec(getComputedStyle($(".sky")).backgroundImage || "");
     if (!m) return resolve();
@@ -327,7 +339,7 @@
     img.onload = img.onerror = resolve;
     img.src = m[1];
   });
-  const sceneShown = Promise.race([skyReady, wait(1500)]).then(() => wait(150)).then(intro);
+  const sceneShown = Promise.all([Promise.race([skyReady, wait(1500)]), wordShown]).then(() => wait(150)).then(intro);
   Promise.all([sceneShown, Promise.race([ready, wait(2500)])])
     .then(() => gsap.to(letters, { y: 0, opacity: 1, duration: 1.6, stagger: 0.12, ease: "expo.out", delay: 0.5 }));
 
@@ -425,7 +437,7 @@
       fly(".fly-beef", 3.5); fly(".fly-beef2", 3.7); show(2, 4.3); bump(4.6);
       // 03 — зелень
       fly(".fly-cil", 5.5); fly(".fly-onion", 5.7); show(3, 6.2); bump(6.6);
-      // 04 — бульон: кипящий бульон заваривает говядину — сырое мясо сменяется настоящим фото, поднимается пар
+      // 04 — бульон: чашу заливают горячим бульоном — проявляется настоящее фото, поднимается пар
       show(4, 8.3, 1.3); bump(9.1);
       tl.fromTo(".asm-steam", { opacity: 0 }, { opacity: 1, duration: 0.8 }, 8.9);
       // 05 — подача: включается видео с паром, чаша чуть приближается

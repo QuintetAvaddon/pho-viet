@@ -635,7 +635,12 @@ body.has-pointer .cursor-glow { opacity: 1; }
 .rt-petals i { position: absolute; right: var(--x); bottom: var(--y); width: 12px; height: 8px; opacity: 0; animation: rtPetal var(--d) linear var(--dl) infinite; will-change: transform, opacity; }
 .rt-petals b { display: block; width: 100%; height: 100%; border-radius: 80% 0 80% 0; background: var(--c); scale: var(--s); animation: petalFlutter 1.4s ease-in-out var(--dl) infinite alternate; }
 @keyframes rtPetal { 0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0; } 12% { opacity: .95; } 80% { opacity: .85; } 100% { transform: translate3d(var(--dx), var(--dy), 0) rotate(var(--r)); opacity: 0; } }
-.ritual:not(.is-near) .rt-petals i, .ritual:not(.is-near) .rt-petals b, .ritual:not(.is-near) .rt-glow { animation-play-state: paused; }
+/* …и падают с ветки наверху, покачиваясь (fx.js раскладывает их вдоль ветки) */
+.rt-fall { position: absolute; z-index: 7; left: -6%; top: -4%; width: 36%; height: 16%; pointer-events: none; }
+.rt-fall i { position: absolute; left: var(--x); top: var(--y); width: 12px; height: 8px; opacity: 0; animation: rtPetal var(--d) linear var(--dl) infinite; will-change: transform, opacity; }
+.rt-fall b { display: block; width: 100%; height: 100%; border-radius: 80% 0 80% 0; background: var(--c); scale: var(--s); animation: petalFlutter 1.4s ease-in-out var(--dl) infinite alternate, rtSway 2.6s ease-in-out var(--dl) infinite alternate; }
+@keyframes rtSway { from { translate: -14px 0; } to { translate: 14px 0; } }
+.ritual:not(.is-near) :is(.rt-petals, .rt-fall) :is(i, b), .ritual:not(.is-near) .rt-glow { animation-play-state: paused; }
 .ritual.is-near .rt-branch, .ritual.is-near .rt-bloom, .ritual.is-near .rt-moon { will-change: transform; }
 @media (max-width: 1100px) {
   .rt-head { flex-direction: column; align-items: flex-start; }
@@ -668,6 +673,7 @@ body.has-pointer .cursor-glow { opacity: 1; }
   .rt-branch { left: -16%; top: -3%; width: 66%; }
   .rt-bloom { right: -8%; bottom: -10%; width: 36%; }
   .rt-petals { width: 100%; height: 70%; }
+  .rt-fall { left: -10%; top: -2%; width: 60%; height: 10%; }
 }
 /* Пар над чашей (глава 2) */
 .steam {
