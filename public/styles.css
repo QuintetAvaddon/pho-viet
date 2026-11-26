@@ -275,7 +275,6 @@ body.has-pointer .cursor-glow { opacity: 1; }
 .hero { min-height: 620px; overflow: hidden; background: var(--bg); position: sticky; top: 0; height: calc(var(--svh, 1vh) * 100); }
 .scene { position: absolute; inset: 0; background: radial-gradient(120% 80% at 50% 0%, #2e1112 0%, #180b0c 45%, #110909 80%); }
 .layer { position: absolute; inset: 0; width: 100%; height: 100%; will-change: transform; }
-.stars { opacity: .9; }
 /* Сцена — картинки Higgsfield (кинореализм). Кадр для телефона или компьютера выбирает ориентация экрана:
    браузер скачивает только тот, что применился */
 @media (min-aspect-ratio: 1/1) {
@@ -369,10 +368,9 @@ body.has-pointer .cursor-glow { opacity: 1; }
   pointer-events: auto;
 }
 .hero-lead {
-  font: 800 clamp(30px, 4vw, 54px)/1.05 var(--font-display);
+  font: 800 clamp(26px, min(3.3vw, 6.4vh), 46px)/1.05 var(--font-display);
   letter-spacing: -.03em;
   text-shadow: 0 4px 30px rgba(0, 0, 0, .6);
-  font-size: clamp(26px, min(3.3vw, 6.4vh), 46px);
   margin-bottom: clamp(10px, 2.2vh, 18px);
 }
 .hero-lead em { font-family: var(--font-serif); font-style: italic; font-weight: 600; color: var(--moon-hot); letter-spacing: 0; }
@@ -701,10 +699,9 @@ body.has-pointer .cursor-glow { opacity: 1; }
   align-items: center;
   width: max-content;
   white-space: nowrap;
-  font: 900 clamp(56px, 9vw, 140px)/1 var(--font-display);
+  font: 900 clamp(40px, 6.2vw, 96px)/1 var(--font-display);
   letter-spacing: -.03em;
   will-change: transform;
-  font-size: clamp(40px, 6.2vw, 96px);
   gap: 30px;
 }
 .marquee-row i { font-style: normal; font-size: .35em; color: var(--moon-hot); }
@@ -719,10 +716,9 @@ body.has-pointer .cursor-glow { opacity: 1; }
 }
 /* ---------- Разделы ---------- */
 .section-head h2, .menu-intro h2, .finale h2 {
-  font: 800 clamp(40px, 6.5vw, 96px)/.98 var(--font-display);
+  font: 800 clamp(30px, 4.2vw, 60px)/.98 var(--font-display);
   letter-spacing: -.045em;
   margin-top: 14px;
-  font-size: clamp(30px, 4.2vw, 60px);
 }
 .split .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .08em; margin-bottom: -.08em; }
 .split .w > span { display: inline-block; will-change: transform; }
@@ -778,9 +774,8 @@ body.has-pointer .cursor-glow { opacity: 1; }
   display: flex;
   align-items: baseline;
   gap: 14px;
-  font: 800 clamp(26px, 3.2vw, 40px) var(--font-display);
+  font: 800 clamp(22px, 2.4vw, 30px) var(--font-display);
   letter-spacing: -.03em;
-  font-size: clamp(22px, 2.4vw, 30px);
   margin-bottom: 18px;
 }
 .menu-section h2 .count { font: 600 14px var(--font-body); color: var(--muted); letter-spacing: 0; }
@@ -855,7 +850,7 @@ body.has-pointer .cursor-glow { opacity: 1; }
 .card-meta .rating { display: inline-flex; align-items: center; gap: 4px; color: var(--jade-text); font-weight: 700; }
 .card-meta .rating .ic { width: 14px; height: 14px; }
 .card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 10px; }
-.price { font: 800 20px var(--font-display); letter-spacing: -.02em; font-size: 17px; }
+.price { font: 800 17px var(--font-display); letter-spacing: -.02em; }
 .add-btn {
   display: inline-flex;
   align-items: center;
@@ -907,12 +902,11 @@ body.has-pointer .cursor-glow { opacity: 1; }
 .vertical-big {
   margin: 0;
   writing-mode: vertical-rl;
-  font: 900 clamp(80px, 12vw, 190px)/.85 var(--font-display);
+  font: 900 clamp(64px, 9vw, 140px)/.85 var(--font-display);
   letter-spacing: -.02em;
   color: transparent;
   -webkit-text-stroke: 1.5px rgba(181, 209, 122, .6);
   text-shadow: 0 0 60px rgba(181, 209, 122, .2);
-  font-size: clamp(64px, 9vw, 140px);
 }
 .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 30px; gap: 14px; }
 .info-card {
@@ -929,7 +923,7 @@ body.has-pointer .cursor-glow { opacity: 1; }
   padding: 18px 20px;
 }
 .info-card:hover { border-color: rgba(181, 209, 122, .4); transform: translateY(-4px); }
-.info-card h3 { font: 800 20px var(--font-display); margin: 0; font-size: 17px; }
+.info-card h3 { font: 800 17px var(--font-display); margin: 0; }
 .info-card p { margin: 0; color: var(--muted); font-size: 14px; }
 /* ---------- Подвал ---------- */
 .site-footer { position: relative; padding: 60px 0 28px; overflow: hidden; }
@@ -1362,7 +1356,6 @@ html.is-app .drawer-foot, html.is-app .checkout-modal { padding-bottom: max(22px
   border-radius: 50%;
   background: radial-gradient(closest-side, rgba(242, 165, 65, .22), transparent);
   pointer-events: none;
-  filter: none;
 }
 .asm-scene { position: relative; width: 100%; overflow: visible; aspect-ratio: 1; max-height: calc(var(--svh, 1vh) * 100 - var(--header-h) - 30px); }
 /* Чаша по шагам: кадры одного размера лежат друг на друге, следующий проявляется поверх предыдущего */
@@ -1515,13 +1508,11 @@ html.no-fx .asm-steps li { opacity: 1; }
   z-index: -1;
   pointer-events: none;
   white-space: nowrap;
-  font: 900 clamp(44px, 11vw, 170px)/.8 var(--font-display);
+  font: 900 clamp(44px, 7vw, 120px)/.8 var(--font-display);
   letter-spacing: -.04em;
   color: transparent;
   -webkit-text-stroke: 1px rgba(181, 209, 122, .2);
   top: 6px;
-  bottom: auto;
-  font-size: clamp(44px, 7vw, 120px);
 }
 @media (max-width: 720px) {
   .finale-lanterns span:nth-child(n+6) { display: none; }
@@ -1542,7 +1533,6 @@ html.no-fx .asm-steps li { opacity: 1; }
 /* =========================================================
    Производительность (особенно телефоны / iOS)
    ========================================================= */
-/* Луна: вместо анимации огромной тени (перерисовка каждый кадр) — мягкое свечение, которое меняет только прозрачность */
 /* Телефоны и планшеты (сенсорный экран): убираем самые дорогие эффекты */
 @media (hover: none), (max-width: 1024px) {
   .grain { display: none; }
@@ -1666,12 +1656,10 @@ html.no-fx .asm-steps li { opacity: 1; }
 .legal a { color: var(--jade-text); }
 /* =========================================================
    Телефоны: те же анимации, что на компьютере, но без перерисовки.
-   fx.js ставит fx-touch (сенсорный экран), hero-on (первый экран рядом), asm-on (сборка фо рядом)
+   fx.js ставит fx-touch (сенсорный экран) и is-near на секцию, до которой остался экран
    ========================================================= */
-/* Анимации внутри SVG перерисовывают всю картинку каждый кадр — на телефоне выключены */
 /* Тяжёлые размытия и огромные тени заменены готовым свечением */
 html.fx-touch .gl { filter: none; }
-html.fx-touch .asm-glow { filter: none; }
 html.fx-touch .split .w > span { will-change: auto; }
 /* Всё, что двигается при прокрутке, — отдельные слои на видеокарте: прокрутка сдвигает готовые картинки */
 html.fx-touch .marquee-row, html.fx-touch .vertical-big, html.fx-touch .footer-giant { will-change: transform; }
@@ -2137,7 +2125,7 @@ body.app-page:not(.page-menu) { background: var(--bg); }
   border: 1px solid rgba(165, 46, 46, .5);
 }
 .rate-big b { display: block; font: 900 44px/1 var(--font-display); letter-spacing: -.03em; }
-.rate-big .stars { display: block; margin-top: 4px; color: var(--amber); letter-spacing: 2px; font-size: 13px; }
+.rate-big .stars { display: block; margin-top: 4px; color: var(--amber); letter-spacing: 2px; font-size: 13px; opacity: .9; }
 .rate-text b { display: block; font-size: 17px; }
 .rate-text span { color: var(--muted); font-size: 13px; }
 .home-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -2502,8 +2490,6 @@ html:is(.fx-full, .fx-touch):not(.no-fx) .assemble { height: calc(max(var(--svh,
 @media (max-width: 720px) {
   html:is(.fx-full, .fx-touch):not(.no-fx) .hero-track { height: calc(max(var(--svh, 1vh) * 100, 560px) + var(--svh, 1vh) * 90); }
 }
-/* Чаша из слоёв: основа, бульон, лапша, мясо, зелень, долитый бульон, блик — один размер, лежат друг на друге */
-/* на телефоне каждый слой начинки — готовая картинка на видеокарте: при появлении только сдвигается */
 /* =========================================================
    Стабильная высота экрана (--svh из fx.js): встроенные браузеры меняют высоту окна, пряча панели, —
    первый экран, сборка фо и главы больше не перестраиваются на ходу

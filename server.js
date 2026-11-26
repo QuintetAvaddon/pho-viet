@@ -402,39 +402,53 @@ async function setupWebhook() {
 }
 
 function serveStatic(req, res) {
-  let urlPath = decodeURIComponent(new URL(req.url, "http://x").pathname);
+  const url = new URL(req.url, "http://x");
+  let urlPath;
+  // адрес с битой кодировкой (например, /%E0%A4%A) — ответ 400, а не падение сервера
+  try { urlPath = decodeURIComponent(url.pathname); } catch { return send(res, 400, "Bad request", "text/plain; charset=utf-8"); }
   // вкладки приложения — одна страница: главная (/app), меню (/menu) и акции (/promo) переключаются без загрузки
   if (urlPath === "/app" || urlPath === "/promo") urlPath = "/menu";
   if (urlPath.endsWith("/")) urlPath += "index.html";
   if (!path.extname(urlPath)) urlPath += ".html"; // /menu -> menu.html
   const file = path.normalize(path.join(PUBLIC_DIR, urlPath));
   if (!file.startsWith(PUBLIC_DIR + path.sep)) return send(res, 403, "Forbidden", "text/plain");
-  fs.readFile(file, (err, data) => {
-    if (err) return send(res, 404, "Not found", "text/plain; charset=utf-8");
-    // service worker и страницы не кэшируем в браузере, чтобы обновления доходили сразу
-    if (/\.(html|js|webmanifest)$/.test(file)) res.setHeader("Cache-Control", "no-cache");
-    if (file === path.join(PUBLIC_DIR, "index.html")) {
-      try { data = Buffer.from(data.toString("utf8").replace("</head>", restaurantLd() + "\n</head>")); }
-      catch (e) { console.error("[ld] разметка не собрана:", e.message); }
-    }
-    const type = MIME[path.extname(file).toLowerCase()] || "application/octet-stream";
-    // Видео Safari на iPhone запрашивает кусками (Range) и без ответа 206 не воспроизводит
-    if (type.startsWith("video/")) {
-      res.setHeader("Accept-Ranges", "bytes");
-      const m = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || "");
-      if (m && (m[1] || m[2])) {
-        const size = data.length;
-        const start = m[1] ? Number(m[1]) : Math.max(0, size - Number(m[2]));
-        const end = m[1] && m[2] ? Math.min(Number(m[2]), size - 1) : size - 1;
-        if (start > end || start >= size) {
-          res.writeHead(416, { "Content-Range": `bytes */${size}` });
-          return res.end();
-        }
-        res.writeHead(206, { "Content-Type": type, "Content-Range": `bytes ${start}-${end}/${size}`, "Content-Length": end - start + 1, "X-Content-Type-Options": "nosniff" });
-        return res.end(data.subarray(start, end + 1));
+  fs.stat(file, (statErr, st) => {
+    if (statErr || !st.isFile()) return send(res, 404, "Not found", "text/plain; charset=utf-8");
+    const isIndex = file === path.join(PUBLIC_DIR, "index.html");
+    // Кэш браузера. Файлы с номером версии (?v=N) не меняются — хранятся год (при выпуске номер растёт).
+    // Страницы, скрипты без версии, манифест и service worker сверяются с сервером при каждом открытии,
+    // картинки — раз в час; если файл не менялся, сервер отвечает 304 без тела (по ETag).
+    let tag = st.size.toString(36) + "-" + Math.floor(st.mtimeMs).toString(36);
+    if (isIndex) try { tag += "-" + Math.floor(fs.statSync(path.join(PUBLIC_DIR, "menu.js")).mtimeMs).toString(36); } catch {} // в главную вставляется разметка из menu.js
+    const etag = `W/"${tag}"`;
+    res.setHeader("ETag", etag);
+    res.setHeader("Cache-Control", url.searchParams.has("v") ? "public, max-age=31536000, immutable" : /\.(html|js|webmanifest)$/.test(file) ? "no-cache" : "max-age=3600");
+    if (req.headers["if-none-match"] === etag && !req.headers.range) { res.writeHead(304); return res.end(); }
+    fs.readFile(file, (err, data) => {
+      if (err) return send(res, 404, "Not found", "text/plain; charset=utf-8");
+      if (isIndex) {
+        try { data = Buffer.from(data.toString("utf8").replace("</head>", restaurantLd() + "\n</head>")); }
+        catch (e) { console.error("[ld] разметка не собрана:", e.message); }
       }
-    }
-    send(res, 200, data, type);
+      const type = MIME[path.extname(file).toLowerCase()] || "application/octet-stream";
+      // Видео Safari на iPhone запрашивает кусками (Range) и без ответа 206 не воспроизводит
+      if (type.startsWith("video/")) {
+        res.setHeader("Accept-Ranges", "bytes");
+        const m = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || "");
+        if (m && (m[1] || m[2])) {
+          const size = data.length;
+          const start = m[1] ? Number(m[1]) : Math.max(0, size - Number(m[2]));
+          const end = m[1] && m[2] ? Math.min(Number(m[2]), size - 1) : size - 1;
+          if (start > end || start >= size) {
+            res.writeHead(416, { "Content-Range": `bytes */${size}` });
+            return res.end();
+          }
+          res.writeHead(206, { "Content-Type": type, "Content-Range": `bytes ${start}-${end}/${size}`, "Content-Length": end - start + 1, "X-Content-Type-Options": "nosniff" });
+          return res.end(data.subarray(start, end + 1));
+        }
+      }
+      send(res, 200, data, type);
+    });
   });
 }
 
