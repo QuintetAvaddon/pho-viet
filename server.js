@@ -4,10 +4,13 @@
   - принимает заказы (POST /api/order) и отправляет их в Telegram
   - принимает заявки на работу (POST /api/job) и отправляет их в Telegram ресторана
   - принимает сообщения бота (POST /api/tg): в группе бот отвечает ID чата и к какому ресторану он привязан
+  - с базой заказов (ORDERS_DB) сохраняет заказы и ведёт раздел для персонала /staff: заказы, статусы, отчёты
 
   Запуск:            node server.js
   Узнать chat_id:    node server.js chat-id
-  Настройки — в файле .env (см. .env.example). Зависимостей нет, нужен Node.js 18+.
+  Сотрудники:        node server.js staff add <логин> owner|manager [ресторан p1…p5] [имя]
+                     node server.js staff passwd <логин>  ·  node server.js staff list
+  Настройки — в файле .env (см. .env.example). Зависимостей нет; нужен Node.js 18+, для базы заказов — 22.13+.
 */
 "use strict";
 
@@ -37,6 +40,13 @@ const PUBLIC_DIR = path.join(__dirname, "public");
 const PUBLIC_URL = (process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || "").replace(/\/$/, "");
 // Секрет webhook: Telegram присылает его в заголовке — чужие запросы на /api/tg отклоняются
 const HOOK_SECRET = BOT_TOKEN ? crypto.createHash("sha256").update("pv-hook:" + BOT_TOKEN).digest("hex").slice(0, 48) : "";
+
+/* ---------- База заказов и раздел для персонала ----------
+   Включаются переменной ORDERS_DB — путём к файлу базы на постоянном диске сервера. Без неё сайт работает как раньше:
+   заказ целиком уходит в Telegram и нигде не хранится (так и на Render: его диск стирается при каждом обновлении). */
+const ORDERS_DB = process.env.ORDERS_DB || "";
+const DB = ORDERS_DB ? require("./db").open(ORDERS_DB) : null;
+const STAFF = DB ? require("./staff").createStaff({ db: DB, loadMenu, send, readBody, siteUrl: PUBLIC_URL }) : null;
 
 /* ---------- Меню (цены берём с сервера, а не из браузера) ---------- */
 function loadMenu() {
@@ -169,7 +179,7 @@ function buildOrder(input, menu) {
     const d = menu.byId[it?.id];
     const qty = Math.floor(Number(it?.qty));
     if (!d || !(qty >= 1 && qty <= 99)) { errors.push("items"); break; }
-    items.push({ name: d.name, price: d.price, qty });
+    items.push({ id: d.id, name: d.name, price: d.price, qty });
   }
   if (!items.length) errors.push("items");
 
@@ -275,6 +285,24 @@ async function handleOrder(req, res) {
   if (errors.includes("time")) return send(res, 422, { ok: false, code: "time", error: "Выбранное время уже недоступно — выберите другое" });
   if (errors.includes("coupon")) return send(res, 422, { ok: false, code: "coupon", error: couponError || "Промокод не действует" });
   if (errors.length) return send(res, 422, { ok: false, error: "Проверьте данные заказа", fields: errors });
+
+  // С базой заказ сохраняется и сразу появляется у персонала в /staff, а в Telegram уходит короткое уведомление
+  // без данных гостя. Если база не сработала — заказ целиком уходит в Telegram, как раньше, чтобы не потерялся.
+  if (DB) {
+    let saved = null;
+    try { saved = DB.saveOrder(order); } catch (e) { console.error("[db] заказ не сохранён, отправляю в Telegram целиком:", e.message); }
+    if (saved) {
+      order.id = String(saved.id);
+      STAFF.broadcast({ type: "new", id: saved.id, point: order.point ? order.point.id : null, status: "new" });
+      const alertChats = chatsFor(order);
+      if (BOT_TOKEN && alertChats.length) {
+        const text = STAFF.alertText(order, esc, rub);
+        Promise.all(alertChats.map(chat_id => sendToChat(chat_id, text))).catch(e => console.error("[telegram] уведомление о заказе не ушло:", e.message));
+      }
+      console.log(`Заказ №${order.id} на ${order.total} ₽ сохранён`);
+      return send(res, 200, { ok: true, id: order.id, total: order.total });
+    }
+  }
 
   const chats = chatsFor(order);
   if (!BOT_TOKEN || !chats.length) {
@@ -456,13 +484,62 @@ async function printChatIds() {
   for (const [id, name] of chats) console.log(`  ${id}  —  ${name}`);
 }
 
+/* ---------- Сотрудники из командной строки (первого владельца создают так) ---------- */
+function staffCli([cmd, login, role, point, ...nameParts]) {
+  if (!DB) { console.log("Сначала задайте ORDERS_DB — путь к файлу базы (в .env или в окружении)"); process.exitCode = 1; return; }
+  const pts = (loadMenu().cfg.locations || []).map(l => l.id);
+  if (cmd === "add" && login && (role === "owner" || role === "manager")) {
+    if (!/^[a-zA-Z0-9._-]{3,30}$/.test(login)) { console.log("Логин: 3–30 латинских букв, цифр, точек или дефисов"); process.exitCode = 1; return; }
+    if (role === "manager" && !pts.includes(point)) { console.log(`Для менеджера укажите ресторан: ${pts.join(", ")}`); process.exitCode = 1; return; }
+    if (DB.findStaffByLogin(login)) { console.log(`Логин ${login} уже есть — новый пароль: node server.js staff passwd ${login}`); process.exitCode = 1; return; }
+    const name = (role === "owner" ? [point, ...nameParts] : nameParts).filter(Boolean).join(" ") || login;
+    const r = DB.addStaff({ login, name, role, point });
+    console.log(`Добавлен: ${login} (${role === "owner" ? "владелец" : "менеджер " + point}). Пароль: ${r.password}`);
+    console.log("Пароль показывается один раз — передайте его сотруднику лично.");
+  } else if (cmd === "passwd" && login) {
+    const s = DB.findStaffByLogin(login);
+    if (!s) { console.log(`Сотрудника ${login} нет`); process.exitCode = 1; return; }
+    console.log(`Новый пароль для ${s.login}: ${DB.resetPassword(s.id)} (старые входы закрыты)`);
+  } else if (cmd === "list") {
+    for (const s of DB.listStaff()) console.log(`${s.active ? " " : "×"} ${s.login.padEnd(16)} ${s.role === "owner" ? "владелец" : "менеджер " + s.point}  ${s.name}`);
+  } else {
+    console.log("node server.js staff add <логин> owner [имя]\nnode server.js staff add <логин> manager <p1…p5> [имя]\nnode server.js staff passwd <логин>\nnode server.js staff list");
+  }
+}
+
+/* ---------- Резервные копии базы: раз в сутки снимок в папку backups рядом с базой, хранятся 14 дней ---------- */
+function startBackups() {
+  if (!DB) return;
+  const dir = process.env.ORDERS_BACKUP_DIR || path.join(path.dirname(path.resolve(ORDERS_DB)), "backups");
+  const run = () => {
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+      const file = path.join(dir, `orders-${DB.mskToday()}.db`);
+      if (!fs.existsSync(file)) { DB.backup(file); console.log(`[db] резервная копия: ${file}`); }
+      const old = Date.now() - 14 * 864e5;
+      for (const f of fs.readdirSync(dir)) {
+        const full = path.join(dir, f);
+        if (/^orders-\d{4}-\d{2}-\d{2}\.db$/.test(f) && fs.statSync(full).mtimeMs < old) fs.unlinkSync(full);
+      }
+    } catch (e) { console.error("[db] резервная копия не сделана:", e.message); }
+  };
+  run();
+  setInterval(run, 3600 * 1000).unref(); // проверка раз в час, копия — раз в сутки
+}
+
 if (process.argv[2] === "chat-id") {
   printChatIds().catch(e => { console.error(e.message); process.exit(1); });
+} else if (process.argv[2] === "staff") {
+  staffCli(process.argv.slice(3));
 } else {
   http.createServer((req, res) => {
     if (req.method === "POST" && req.url === "/api/order") return handleOrder(req, res).catch(e => { console.error(e); send(res, 500, { ok: false, error: "Ошибка сервера" }); });
     if (req.method === "POST" && req.url === "/api/job") return handleJob(req, res).catch(e => { console.error(e); send(res, 500, { ok: false, error: "Ошибка сервера" }); });
     if (req.method === "POST" && req.url === "/api/tg") return handleTelegram(req, res).catch(e => { console.error(e); try { send(res, 500, { ok: false }); } catch {} });
+    if (req.url.startsWith("/api/staff/")) {
+      if (!STAFF) return send(res, 404, { ok: false, code: "disabled", error: "Раздел для персонала работает на сервере с базой заказов" });
+      return STAFF.handle(req, res).catch(e => { console.error("[staff]", e); try { send(res, 500, { ok: false, error: "Ошибка сервера" }); } catch {} });
+    }
     // раньше приложение запускалось с /menu?source=app — теперь стартовая страница приложения /app
     if (req.method === "GET" && /^\/menu(\.html)?\?(.*&)?source=app(&|$)/.test(req.url)) {
       res.writeHead(302, { Location: "/app?source=app", "Cache-Control": "no-store" });
@@ -472,7 +549,9 @@ if (process.argv[2] === "chat-id") {
     send(res, 405, "Method not allowed", "text/plain");
   }).listen(PORT, () => {
     console.log(`Сайт: http://localhost:${PORT}`);
+    if (DB) console.log(`База заказов: ${path.resolve(ORDERS_DB)} · раздел для персонала: /staff`);
     if (!BOT_TOKEN) console.log("ВНИМАНИЕ: Telegram не настроен — задайте TELEGRAM_BOT_TOKEN (см. README)");
+    startBackups();
     setupWebhook();
   });
 }

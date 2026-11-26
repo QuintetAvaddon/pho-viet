@@ -1,2 +1,7 @@
 .env
 node_modules/
+
+# база заказов и её резервные копии — только на сервере, в git не попадают
+*.sqlite*
+orders.db*
+backups/

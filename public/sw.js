@@ -71,3 +71,14 @@ self.addEventListener("fetch", e => {
     })
   );
 });
+
+// Нажатие на уведомление о новом заказе (раздел для персонала): открываем этот заказ в уже открытом окне или в новом
+self.addEventListener("notificationclick", e => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || "/staff";
+  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+    const win = list.find(w => new URL(w.url).pathname === "/staff");
+    if (win) return win.focus().then(w => (w && "navigate" in w ? w.navigate(url) : w));
+    return self.clients.openWindow(url);
+  }));
+});

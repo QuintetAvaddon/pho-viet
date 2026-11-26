@@ -1,0 +1,17 @@
+{
+  "name": "Phở Việt — заказы",
+  "short_name": "Заказы PV",
+  "description": "Заказы и отчёты для владельца и менеджеров ресторанов Phở Việt",
+  "lang": "ru",
+  "id": "/staff",
+  "start_url": "/staff",
+  "scope": "/staff",
+  "display": "standalone",
+  "background_color": "#110909",
+  "theme_color": "#110909",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
